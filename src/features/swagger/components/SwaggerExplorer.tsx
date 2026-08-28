@@ -53,7 +53,7 @@ export function SwaggerExplorer() {
             type="button"
             onClick={() => void refetch()}
             disabled={isFetching}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-bold text-slate-950"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white"
           >
             <RefreshCw className={isFetching ? 'animate-spin' : ''} size={15} /> Reintentar
           </button>
@@ -104,7 +104,7 @@ export function SwaggerExplorer() {
           <button
             type="button"
             onClick={() => setExplorerView('compare')}
-            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${explorerView === 'compare' ? 'bg-cyan-500 text-slate-950' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+            className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${explorerView === 'compare' ? 'bg-violet-500 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
             aria-pressed={explorerView === 'compare'}
           >
             <Columns3 size={15} /> Comparador

@@ -33,7 +33,7 @@ export function JsonEditor({ value, onChange, label = 'Request JSON' }: JsonEdit
         onChange={(event) => onChange(event.target.value)}
         spellCheck={false}
         rows={14}
-        className={`w-full resize-y rounded-xl border bg-slate-950 p-4 font-mono text-xs leading-5 text-slate-100 transition outline-none focus:ring-2 ${error ? 'border-rose-500/60 focus:ring-rose-500/20' : 'border-slate-700 focus:border-cyan-500/60 focus:ring-cyan-500/20'}`}
+        className={`w-full resize-y rounded-xl border bg-slate-950 p-4 font-mono text-xs leading-5 text-slate-100 transition outline-none focus:ring-2 ${error ? 'border-rose-500/60 focus:ring-rose-500/20' : 'border-slate-700 focus:border-emerald-500/60 focus:ring-emerald-500/20'}`}
       />
       {error && (
         <span className="mt-2 flex items-start gap-1.5 text-xs text-rose-600 dark:text-rose-400">

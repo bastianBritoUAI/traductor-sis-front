@@ -40,7 +40,7 @@ export function ParameterTable({ parameters }: ParameterTableProps) {
               <td className="px-4 py-3 font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">
                 {parameter.name}
               </td>
-              <td className="px-4 py-3 font-mono text-xs text-cyan-700 dark:text-cyan-300">
+              <td className="px-4 py-3 font-mono text-xs text-emerald-700 dark:text-emerald-300">
                 {getSchemaType(parameter.schema)}
               </td>
               <td className="px-4 py-3">

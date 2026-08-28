@@ -49,14 +49,14 @@ export function AppHeader() {
         </button>
 
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 shadow-lg shadow-cyan-500/20">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-violet-600 shadow-lg shadow-emerald-500/20">
             <span className="font-mono text-sm font-black text-white">SIS</span>
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-bold tracking-tight text-slate-900 dark:text-white">
               Traductor SIS
             </p>
-            <p className="hidden text-[10px] font-semibold tracking-[0.14em] text-cyan-600 uppercase sm:block dark:text-cyan-400">
+            <p className="hidden text-[10px] font-semibold tracking-[0.14em] text-emerald-600 uppercase sm:block dark:text-emerald-400">
               API Explorer
             </p>
             <code className="block max-w-28 truncate text-[9px] text-slate-400 sm:hidden">

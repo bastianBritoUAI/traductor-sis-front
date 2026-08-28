@@ -150,8 +150,8 @@ export function RequestBuilder({
 
   if (endpoint.path === API_TOKEN_OPERATION_ENDPOINT) {
     return (
-      <section className="rounded-2xl border border-cyan-500/20 bg-cyan-500/[0.05] p-6 text-center">
-        <div className="mx-auto flex size-11 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-300">
+      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-6 text-center">
+        <div className="mx-auto flex size-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
           <KeyRound size={20} />
         </div>
         <h2 className="mt-4 text-sm font-bold text-slate-900 dark:text-white">
@@ -168,13 +168,13 @@ export function RequestBuilder({
   return (
     <div>
       <section
-        className={`overflow-hidden border border-cyan-500/20 bg-gradient-to-b from-cyan-500/[0.04] to-white shadow-sm dark:to-white/[0.02] ${compact ? 'rounded-xl' : 'rounded-2xl'}`}
+        className={`overflow-hidden border border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.04] to-white shadow-sm dark:to-white/[0.02] ${compact ? 'rounded-xl' : 'rounded-2xl'}`}
       >
         <div
           className={`flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 ${compact ? 'px-4 py-3' : 'px-5 py-4'}`}
         >
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-300">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
               <Send size={17} />
             </div>
             <div>
@@ -209,7 +209,7 @@ export function RequestBuilder({
               type="button"
               onClick={run}
               disabled={execution.isPending}
-              className="inline-flex items-center gap-2 rounded-lg bg-cyan-500 px-4 py-2 text-xs font-bold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400 disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400 disabled:cursor-wait disabled:opacity-60"
             >
               {execution.isPending ? (
                 <LoaderCircle className="animate-spin" size={14} />
@@ -264,7 +264,7 @@ export function RequestBuilder({
                         className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none dark:bg-[#0a1421] dark:text-white ${
                           invalid
                             ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
-                            : 'border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-white/10'
+                            : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10'
                         }`}
                       >
                         <option value="">Seleccionar…</option>
@@ -292,7 +292,7 @@ export function RequestBuilder({
                         className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 dark:bg-black/20 dark:text-white ${
                           invalid
                             ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
-                            : 'border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-white/10'
+                            : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10'
                         }`}
                       />
                     )}

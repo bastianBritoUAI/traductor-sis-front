@@ -1,6 +1,7 @@
 import {
   Check,
   ChevronDown,
+  ChevronsDownUp,
   ChevronsUpDown,
   PanelLeftClose,
   PanelLeftOpen,
@@ -15,13 +16,13 @@ import type { HttpMethod, SwaggerEndpoint } from '../../../types/swagger'
 
 // Clases pre-calculadas por método para evitar purga de Tailwind con strings dinámicos
 const methodSelectedStyle: Record<HttpMethod, string> = {
-  get: 'border-cyan-400 bg-cyan-500/10 dark:bg-cyan-500/20',
-  post: 'border-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20',
+  get: 'border-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20',
+  post: 'border-orange-400 bg-orange-500/10 dark:bg-orange-500/20',
   put: 'border-amber-400 bg-amber-500/10 dark:bg-amber-500/20',
   patch: 'border-violet-400 bg-violet-500/10 dark:bg-violet-500/20',
   delete: 'border-rose-400 bg-rose-500/10 dark:bg-rose-500/20',
   options: 'border-slate-400 bg-slate-500/10 dark:bg-slate-500/20',
-  head: 'border-blue-400 bg-blue-500/10 dark:bg-blue-500/20',
+  head: 'border-slate-400 bg-slate-500/10 dark:bg-slate-500/20',
 }
 
 interface SidebarSwaggerProps {
@@ -74,13 +75,21 @@ export function SidebarSwagger({
   const toggleGroup = (tag: string, open: boolean) =>
     setGroupVisibility((current) => ({ ...current, [tag]: !open }))
 
+  const allExpanded = filteredGroups.every(([tag], index) => isExpanded(tag, index))
+  const toggleAllGroups = () => {
+    const next = !allExpanded
+    setGroupVisibility(
+      Object.fromEntries(filteredGroups.map(([tag]) => [tag, next])),
+    )
+  }
+
   if (desktop && sidebarCollapsed) {
     return (
       <aside className="flex h-full w-14 flex-col items-center border-r border-slate-200 bg-white py-3 transition-[width] duration-200 dark:border-white/[0.08] dark:bg-[#070e1a]">
         <button
           type="button"
           onClick={toggleSidebarCollapsed}
-          className="flex size-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300"
+          className="flex size-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-300"
           aria-label="Expandir menú de endpoints"
           title="Expandir menú de endpoints"
         >
@@ -139,7 +148,7 @@ export function SidebarSwagger({
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar ruta u operación…"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-9 text-xs text-slate-900 transition outline-none focus:border-cyan-500 focus:bg-white focus:ring-2 focus:ring-cyan-500/10 dark:border-white/10 dark:bg-white/[0.07] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-cyan-500/60 dark:focus:bg-white/[0.09]"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-9 text-xs text-slate-900 transition outline-none focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/10 dark:border-white/10 dark:bg-white/[0.07] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-emerald-500/60 dark:focus:bg-white/[0.09]"
           />
         </label>
         {/* <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1">
@@ -171,7 +180,20 @@ export function SidebarSwagger({
         </p> */}
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Endpoints OpenAPI">
+      <nav className="flex-1 overflow-y-auto" aria-label="Endpoints OpenAPI">
+        {filteredGroups.length > 0 && (
+          <div className="flex items-center justify-end border-b border-slate-100 px-3 py-1.5 dark:border-white/[0.06]">
+            <button
+              type="button"
+              onClick={toggleAllGroups}
+              className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 transition hover:text-slate-600 dark:hover:text-slate-200"
+            >
+              {allExpanded ? <ChevronsDownUp size={11} /> : <ChevronsUpDown size={11} />}
+              {allExpanded ? 'Colapsar todo' : 'Expandir todo'}
+            </button>
+          </div>
+        )}
+        <div className="px-2 py-3">
         {filteredGroups.length ? (
           filteredGroups.map(([tag, group], index) => {
             const open = isExpanded(tag, index)
@@ -238,8 +260,8 @@ export function SidebarSwagger({
                             onClick={() => toggleComparisonEndpoint(endpoint.id)}
                             className={`mr-1.5 shrink-0 rounded-md p-1.5 transition ${
                               compared
-                                ? 'bg-cyan-500 text-slate-950'
-                                : 'text-slate-400 opacity-0 hover:bg-cyan-500/10 hover:text-cyan-600 group-hover/endpoint:opacity-100 dark:hover:text-cyan-300'
+                                ? 'bg-violet-500 text-white'
+                                : 'text-slate-400 opacity-0 hover:bg-violet-500/10 hover:text-violet-600 group-hover/endpoint:opacity-100 dark:hover:text-violet-300'
                             }`}
                             aria-pressed={compared}
                             aria-label={`${compared ? 'Quitar' : 'Agregar'} ${endpoint.summary} ${compared ? 'del' : 'al'} comparador`}
@@ -264,6 +286,7 @@ export function SidebarSwagger({
             <p className="mt-1 text-xs text-slate-400">Prueba con otro término o método.</p>
           </div>
         )}
+        </div>
       </nav>
     </aside>
   )
