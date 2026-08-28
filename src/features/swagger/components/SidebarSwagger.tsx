@@ -1,4 +1,13 @@
-import { ChevronDown, ChevronsUpDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import {
+  Check,
+  ChevronDown,
+  ChevronsUpDown,
+  Columns3,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { MethodBadge } from '../../../components/MethodBadge'
 import { useUiStore } from '../../../store/uiStore'
@@ -18,6 +27,9 @@ export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwagg
   const [groupVisibility, setGroupVisibility] = useState<Record<string, boolean>>({})
   const selectedEndpointId = useUiStore((state) => state.selectedEndpointId)
   const selectEndpoint = useUiStore((state) => state.selectEndpoint)
+  const comparisonEndpointIds = useUiStore((state) => state.comparisonEndpointIds)
+  const toggleComparisonEndpoint = useUiStore((state) => state.toggleComparisonEndpoint)
+  const setExplorerView = useUiStore((state) => state.setExplorerView)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
 
   const filteredGroups = useMemo(() => {
@@ -93,6 +105,20 @@ export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwagg
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={() => setExplorerView('compare')}
+          className="mt-3 flex w-full items-center gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/[0.07] px-3 py-2.5 text-left text-xs font-semibold text-cyan-700 transition hover:bg-cyan-500/10 dark:text-cyan-300"
+        >
+          <Columns3 size={16} />
+          <span className="flex-1">Abrir comparador</span>
+          <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-[10px] font-bold">
+            {comparisonEndpointIds.length}
+          </span>
+        </button>
+        <p className="mt-2 text-[10px] leading-4 text-slate-400">
+          Usa el botón + de cada operación para agregarla a la comparación.
+        </p>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Endpoints OpenAPI">
@@ -118,24 +144,41 @@ export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwagg
                 </button>
                 {open && (
                   <div className="ml-3 border-l border-slate-200 pl-2 dark:border-white/10">
-                    {group.map((endpoint) => (
-                      <button
-                        key={endpoint.id}
-                        type="button"
-                        onClick={() => selectEndpoint(endpoint.id)}
-                        className={`my-0.5 flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition ${selectedEndpointId === endpoint.id ? 'bg-cyan-500/10 ring-1 ring-cyan-500/20' : 'hover:bg-slate-100 dark:hover:bg-white/5'}`}
-                      >
-                        <MethodBadge method={endpoint.method} compact />
-                        <span className="min-w-0">
-                          <span className="line-clamp-2 block text-[11px] leading-4 font-medium text-slate-700 dark:text-slate-300">
-                            {endpoint.summary}
-                          </span>
-                          <code className="mt-0.5 block truncate text-[10px] text-slate-400">
-                            {endpoint.path}
-                          </code>
-                        </span>
-                      </button>
-                    ))}
+                    {group.map((endpoint) => {
+                      const compared = comparisonEndpointIds.includes(endpoint.id)
+                      return (
+                        <div
+                          key={endpoint.id}
+                          className={`group/endpoint my-0.5 flex items-start rounded-lg transition ${selectedEndpointId === endpoint.id ? 'bg-cyan-500/10 ring-1 ring-cyan-500/20' : 'hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => selectEndpoint(endpoint.id)}
+                            className="flex min-w-0 flex-1 items-start gap-2 rounded-lg px-2 py-2 text-left"
+                          >
+                            <MethodBadge method={endpoint.method} compact />
+                            <span className="min-w-0">
+                              <span className="line-clamp-2 block text-[11px] leading-4 font-medium text-slate-700 dark:text-slate-300">
+                                {endpoint.summary}
+                              </span>
+                              <code className="mt-0.5 block truncate text-[10px] text-slate-400">
+                                {endpoint.path}
+                              </code>
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleComparisonEndpoint(endpoint.id)}
+                            className={`mt-1.5 mr-1.5 shrink-0 rounded-md p-1.5 transition ${compared ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300'}`}
+                            aria-pressed={compared}
+                            aria-label={`${compared ? 'Quitar' : 'Agregar'} ${endpoint.summary} ${compared ? 'del' : 'al'} comparador`}
+                            title={compared ? 'Quitar del comparador' : 'Agregar al comparador'}
+                          >
+                            {compared ? <Check size={14} /> : <Plus size={14} />}
+                          </button>
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>

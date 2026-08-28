@@ -26,23 +26,7 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
   return (
     <article className="mx-auto w-full max-w-[1120px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
       <div className="mb-8">
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-            {endpoint.tags[0]}
-          </span>
-          {endpoint.deprecated && (
-            <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-700 dark:text-amber-300">
-              Obsoleto
-            </span>
-          )}
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl dark:text-white">
-          {endpoint.summary}
-        </h1>
-        <details
-          className="group/summary mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]"
-          open
-        >
+        <details className="group/summary overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:hidden">
             <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               Resumen del endpoint
@@ -97,7 +81,9 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
         </Section>
       )}
 
-      <details key={endpoint.id} className="group/responses mb-9">
+      <RequestBuilder key={endpoint.id} endpoint={endpoint} />
+
+      <details key={endpoint.id} className="group/responses mt-9">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg py-2 marker:hidden">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Respuestas</h2>
           <span className="ml-auto text-[10px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
@@ -145,8 +131,6 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
           })}
         </div>
       </details>
-
-      <RequestBuilder key={endpoint.id} endpoint={endpoint} />
     </article>
   )
 }

@@ -1,14 +1,15 @@
 import { useMutation } from '@tanstack/react-query'
 import { Copy, Eraser, KeyRound, LoaderCircle, Play, Send } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { JsonEditor } from '../../../components/JsonEditor'
 import { API_TOKEN_OPERATION_ENDPOINT } from '../../../services/auth/token.constants'
 import { executeEndpoint, type ParameterValues } from '../../../services/endpointService'
-import type { SwaggerEndpoint } from '../../../types/swagger'
+import type { EndpointExecutionRecord, SwaggerEndpoint } from '../../../types/swagger'
 import { getHttpStatusMessage, getRequestErrorMessage } from '../../../utils/httpErrors'
 import { getSchemaType, isReferenceObject } from '../../../utils/openapi'
-import { ResponseViewer } from './ResponseViewer'
+import { redactSensitiveData } from '../../../utils/redaction'
+import { ExecutionErrorViewer, ResponseViewer } from './ResponseViewer'
 
 function buildInitialParameters(endpoint: SwaggerEndpoint): ParameterValues {
   return Object.fromEntries(
@@ -27,19 +28,72 @@ function buildInitialBody(endpoint: SwaggerEndpoint) {
     : JSON.stringify(endpoint.requestBody.example, null, 2)
 }
 
-export function RequestBuilder({ endpoint }: { endpoint: SwaggerEndpoint }) {
+interface RequestBuilderProps {
+  endpoint: SwaggerEndpoint
+  compact?: boolean
+  initialExecution?: EndpointExecutionRecord
+  onExecutionChange?: (execution?: EndpointExecutionRecord) => void
+}
+
+interface PendingExecution {
+  timestamp: string
+  startedAt: number
+  request: unknown
+}
+
+export function RequestBuilder({
+  endpoint,
+  compact = false,
+  initialExecution,
+  onExecutionChange,
+}: RequestBuilderProps) {
   const [parameters, setParameters] = useState<ParameterValues>(() =>
     buildInitialParameters(endpoint),
   )
   const [body, setBody] = useState(() => buildInitialBody(endpoint))
+  const [lastExecution, setLastExecution] = useState(initialExecution)
+  const pendingExecution = useRef<PendingExecution>(undefined)
+
+  const updateExecution = (record?: EndpointExecutionRecord) => {
+    setLastExecution(record)
+    onExecutionChange?.(record)
+  }
 
   const execution = useMutation({
     mutationFn: executeEndpoint,
     onSuccess: (result) => {
+      updateExecution({
+        endpoint: {
+          id: endpoint.id,
+          method: endpoint.method,
+          path: endpoint.path,
+          summary: endpoint.summary,
+        },
+        timestamp: result.timestamp,
+        durationMs: result.durationMs,
+        request: result.request,
+        result,
+      })
       if (result.status >= 200 && result.status < 300) toast.success('Solicitud completada')
       else toast.error(`${result.status}: ${getHttpStatusMessage(result.status)}`)
     },
-    onError: (error) => toast.error(getRequestErrorMessage(error, 'Endpoint')),
+    onError: (error) => {
+      const message = getRequestErrorMessage(error, 'Endpoint')
+      const pending = pendingExecution.current
+      updateExecution({
+        endpoint: {
+          id: endpoint.id,
+          method: endpoint.method,
+          path: endpoint.path,
+          summary: endpoint.summary,
+        },
+        timestamp: pending?.timestamp ?? new Date().toISOString(),
+        durationMs: pending ? Math.round(performance.now() - pending.startedAt) : 0,
+        request: pending?.request ?? null,
+        error: message,
+      })
+      toast.error(message)
+    },
   })
 
   const run = () => {
@@ -68,6 +122,16 @@ export function RequestBuilder({ endpoint }: { endpoint: SwaggerEndpoint }) {
       }
     }
 
+    pendingExecution.current = {
+      timestamp: new Date().toISOString(),
+      startedAt: performance.now(),
+      request: redactSensitiveData({
+        parameters: Object.fromEntries(
+          Object.entries(parameters).filter(([, value]) => value !== ''),
+        ),
+        body: parsedBody,
+      }),
+    }
     execution.mutate({ endpoint, parameters, body: parsedBody })
   }
 
@@ -77,6 +141,8 @@ export function RequestBuilder({ endpoint }: { endpoint: SwaggerEndpoint }) {
     )
     setBody('{}')
     execution.reset()
+    pendingExecution.current = undefined
+    updateExecution(undefined)
   }
 
   const copyBody = async () => {
@@ -103,8 +169,12 @@ export function RequestBuilder({ endpoint }: { endpoint: SwaggerEndpoint }) {
 
   return (
     <div>
-      <section className="overflow-hidden rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-500/[0.04] to-white shadow-sm dark:to-white/[0.02]">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-white/10">
+      <section
+        className={`overflow-hidden border border-cyan-500/20 bg-gradient-to-b from-cyan-500/[0.04] to-white shadow-sm dark:to-white/[0.02] ${compact ? 'rounded-xl' : 'rounded-2xl'}`}
+      >
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 ${compact ? 'px-4 py-3' : 'px-5 py-4'}`}
+        >
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-300">
               <Send size={17} />
@@ -113,7 +183,9 @@ export function RequestBuilder({ endpoint }: { endpoint: SwaggerEndpoint }) {
               <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
                 Consola de pruebas
               </h2>
-              <p className="text-xs text-slate-500">Los valores se envían directamente a la API</p>
+              <p className={`text-xs text-slate-500 ${compact ? 'hidden sm:block' : ''}`}>
+                Los valores se envían directamente a la API
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -151,9 +223,9 @@ export function RequestBuilder({ endpoint }: { endpoint: SwaggerEndpoint }) {
           </div>
         </div>
 
-        <div className="space-y-5 p-5">
+        <div className={`space-y-5 ${compact ? 'p-4' : 'p-5'}`}>
           {endpoint.parameters.length > 0 && (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className={`grid gap-4 ${compact ? '' : 'md:grid-cols-2'}`}>
               {endpoint.parameters.map((parameter) => {
                 const key = `${parameter.location}:${parameter.name}`
                 const schema = parameter.schema
@@ -224,19 +296,11 @@ export function RequestBuilder({ endpoint }: { endpoint: SwaggerEndpoint }) {
               Esta operación no requiere datos de entrada. Está lista para ejecutar.
             </p>
           )}
-
-          {execution.isError && (
-            <div
-              role="alert"
-              className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-300"
-            >
-              {getRequestErrorMessage(execution.error, 'Endpoint')}
-            </div>
-          )}
         </div>
       </section>
 
-      {execution.data && <ResponseViewer result={execution.data} />}
+      {lastExecution?.result && <ResponseViewer result={lastExecution.result} compact={compact} />}
+      {lastExecution?.error && <ExecutionErrorViewer record={lastExecution} compact={compact} />}
     </div>
   )
 }

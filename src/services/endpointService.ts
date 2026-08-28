@@ -56,6 +56,7 @@ export async function executeEndpoint({
 
   const transport = getApiTransport()
   const url = transport.buildUrl(config)
+  const timestamp = new Date().toISOString()
   const startedAt = performance.now()
   const response = await transport.request(config)
 
@@ -64,6 +65,7 @@ export async function executeEndpoint({
     method: endpoint.method.toUpperCase(),
     status: response.status,
     statusText: response.statusText,
+    timestamp,
     durationMs: Math.round(performance.now() - startedAt),
     request: redactSensitiveData({
       parameters: Object.fromEntries(

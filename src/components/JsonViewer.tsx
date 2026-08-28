@@ -1,10 +1,12 @@
-import { Check, Copy } from 'lucide-react'
+import { Check, ChevronDown, Copy } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 interface JsonViewerProps {
   value: unknown
   label?: string
   maxHeight?: string
+  collapsed?: boolean
+  footer?: React.ReactNode
 }
 
 interface JsonToken {
@@ -45,7 +47,13 @@ const tokenStyles: Record<JsonToken['kind'], string> = {
   punctuation: 'text-slate-300',
 }
 
-export function JsonViewer({ value, label, maxHeight = 'max-h-96' }: JsonViewerProps) {
+export function JsonViewer({
+  value,
+  label,
+  maxHeight = 'max-h-96',
+  collapsed = false,
+  footer,
+}: JsonViewerProps) {
   const [copied, setCopied] = useState(false)
   const json = useMemo(() => {
     if (typeof value === 'string') {
@@ -65,6 +73,49 @@ export function JsonViewer({ value, label, maxHeight = 'max-h-96' }: JsonViewerP
     window.setTimeout(() => setCopied(false), 1500)
   }
 
+  const content = (
+    <pre className={`${maxHeight} overflow-auto p-4 font-mono text-xs leading-5`}>
+      <code>
+        {tokens.map((token, index) => (
+          <span key={`${index}-${token.kind}`} className={tokenStyles[token.kind]}>
+            {token.value}
+          </span>
+        ))}
+      </code>
+    </pre>
+  )
+
+  if (collapsed) {
+    return (
+      <details className="group/json overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10">
+        <summary className="flex list-none items-center justify-between gap-3 px-4 py-2.5 marker:hidden">
+          <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
+            {label ?? 'JSON'}
+          </span>
+          <span className="inline-flex items-center gap-2 text-[10px] text-slate-500">
+            Mostrar
+            <ChevronDown className="transition-transform group-open/json:rotate-180" size={14} />
+          </span>
+        </summary>
+        <div className="border-t border-white/10">
+          <div className="flex justify-end border-b border-white/10 px-2 py-1">
+            <button
+              type="button"
+              onClick={() => void copy()}
+              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-white/10 hover:text-white"
+              aria-label={`Copiar ${label ?? 'JSON'}`}
+            >
+              {copied ? <Check size={13} /> : <Copy size={13} />}
+              {copied ? 'Copiado' : 'Copiar'}
+            </button>
+          </div>
+          {content}
+        </div>
+        {footer}
+      </details>
+    )
+  }
+
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10">
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
@@ -81,15 +132,8 @@ export function JsonViewer({ value, label, maxHeight = 'max-h-96' }: JsonViewerP
           {copied ? 'Copiado' : 'Copiar'}
         </button>
       </div>
-      <pre className={`${maxHeight} overflow-auto p-4 font-mono text-xs leading-5`}>
-        <code>
-          {tokens.map((token, index) => (
-            <span key={`${index}-${token.kind}`} className={tokenStyles[token.kind]}>
-              {token.value}
-            </span>
-          ))}
-        </code>
-      </pre>
+      {content}
+      {footer}
     </div>
   )
 }

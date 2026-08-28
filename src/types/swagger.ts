@@ -46,8 +46,18 @@ export interface EndpointExecutionResult {
   method: string
   status: number
   statusText: string
+  timestamp: string
   durationMs: number
   request: unknown
   headers: Record<string, string>
   data: unknown
+}
+
+export interface EndpointExecutionRecord {
+  endpoint: Pick<SwaggerEndpoint, 'id' | 'method' | 'path' | 'summary'>
+  timestamp: string
+  durationMs: number
+  request: unknown
+  result?: EndpointExecutionResult
+  error?: string
 }
