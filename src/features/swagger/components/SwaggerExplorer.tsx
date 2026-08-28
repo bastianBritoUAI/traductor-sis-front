@@ -69,6 +69,7 @@ export function SwaggerExplorer() {
           endpoints={data.endpoints}
           apiTitle={data.document.info.title}
           apiVersion={data.document.info.version}
+          desktop
         />
       </div>
 
@@ -142,16 +143,26 @@ export function SwaggerExplorer() {
 }
 
 function ExplorerSkeleton() {
+  const sidebarCollapsed = useUiStore((state) => state.sidebarCollapsed)
+
   return (
     <div className="flex h-[calc(100vh-4rem)] animate-pulse overflow-hidden">
-      <aside className="hidden w-[360px] border-r border-slate-200 bg-white p-4 lg:block dark:border-white/10 dark:bg-[#091423]">
-        <div className="h-5 w-3/4 rounded bg-slate-200 dark:bg-white/10" />
-        <div className="mt-5 h-10 rounded-xl bg-slate-100 dark:bg-white/5" />
-        <div className="mt-6 space-y-3">
-          {Array.from({ length: 9 }).map((_, index) => (
-            <div key={index} className="h-9 rounded-lg bg-slate-100 dark:bg-white/5" />
-          ))}
-        </div>
+      <aside
+        className={`hidden border-r border-slate-200 bg-white lg:block dark:border-white/10 dark:bg-[#091423] ${sidebarCollapsed ? 'w-14 p-2' : 'w-[360px] p-4'}`}
+      >
+        {sidebarCollapsed ? (
+          <div className="mx-auto h-10 w-10 rounded-xl bg-slate-100 dark:bg-white/5" />
+        ) : (
+          <>
+            <div className="h-5 w-3/4 rounded bg-slate-200 dark:bg-white/10" />
+            <div className="mt-5 h-10 rounded-xl bg-slate-100 dark:bg-white/5" />
+            <div className="mt-6 space-y-3">
+              {Array.from({ length: 9 }).map((_, index) => (
+                <div key={index} className="h-9 rounded-lg bg-slate-100 dark:bg-white/5" />
+              ))}
+            </div>
+          </>
+        )}
       </aside>
       <main className="flex-1 bg-slate-50 p-8 dark:bg-[#07101d]">
         <div className="mx-auto max-w-5xl space-y-5">

@@ -3,6 +3,8 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Columns3,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Search,
   SlidersHorizontal,
@@ -17,11 +19,17 @@ interface SidebarSwaggerProps {
   endpoints: SwaggerEndpoint[]
   apiTitle: string
   apiVersion: string
+  desktop?: boolean
 }
 
 const methods: Array<HttpMethod | 'all'> = ['all', 'get', 'post', 'put', 'patch', 'delete']
 
-export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwaggerProps) {
+export function SidebarSwagger({
+  endpoints,
+  apiTitle,
+  apiVersion,
+  desktop = false,
+}: SidebarSwaggerProps) {
   const [search, setSearch] = useState('')
   const [method, setMethod] = useState<HttpMethod | 'all'>('all')
   const [groupVisibility, setGroupVisibility] = useState<Record<string, boolean>>({})
@@ -31,6 +39,8 @@ export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwagg
   const toggleComparisonEndpoint = useUiStore((state) => state.toggleComparisonEndpoint)
   const setExplorerView = useUiStore((state) => state.setExplorerView)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
+  const sidebarCollapsed = useUiStore((state) => state.sidebarCollapsed)
+  const toggleSidebarCollapsed = useUiStore((state) => state.toggleSidebarCollapsed)
 
   const filteredGroups = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('es')
@@ -55,8 +65,27 @@ export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwagg
   const toggleGroup = (tag: string, open: boolean) =>
     setGroupVisibility((current) => ({ ...current, [tag]: !open }))
 
+  if (desktop && sidebarCollapsed) {
+    return (
+      <aside className="flex h-full w-14 flex-col items-center border-r border-slate-200 bg-white py-3 transition-[width] duration-200 dark:border-white/10 dark:bg-[#091423]">
+        <button
+          type="button"
+          onClick={toggleSidebarCollapsed}
+          className="flex size-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300"
+          aria-label="Expandir menú de endpoints"
+          title="Expandir menú de endpoints"
+        >
+          <PanelLeftOpen size={19} />
+        </button>
+        <span className="mt-5 text-[10px] font-semibold tracking-[0.18em] text-slate-400 uppercase [writing-mode:vertical-rl]">
+          Endpoints
+        </span>
+      </aside>
+    )
+  }
+
   return (
-    <aside className="flex h-full w-[360px] max-w-[90vw] flex-col border-r border-slate-200 bg-white dark:border-white/10 dark:bg-[#091423]">
+    <aside className="flex h-full w-[360px] max-w-[90vw] flex-col border-r border-slate-200 bg-white transition-[width] duration-200 dark:border-white/10 dark:bg-[#091423]">
       <div className="border-b border-slate-200 px-4 py-4 dark:border-white/10">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -70,14 +99,26 @@ export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwagg
               {apiVersion} · {endpoints.length} operaciones
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(false)}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-white/5"
-            aria-label="Cerrar navegación"
-          >
-            <X size={18} />
-          </button>
+          {desktop ? (
+            <button
+              type="button"
+              onClick={toggleSidebarCollapsed}
+              className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/5 dark:hover:text-white"
+              aria-label="Colapsar menú de endpoints"
+              title="Colapsar menú de endpoints"
+            >
+              <PanelLeftClose size={18} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(false)}
+              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5"
+              aria-label="Cerrar navegación"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
         <label className="relative block">
           <Search
