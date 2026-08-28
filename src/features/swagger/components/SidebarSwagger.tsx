@@ -1,0 +1,156 @@
+import { ChevronDown, ChevronsUpDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { MethodBadge } from '../../../components/MethodBadge'
+import { useUiStore } from '../../../store/uiStore'
+import type { HttpMethod, SwaggerEndpoint } from '../../../types/swagger'
+
+interface SidebarSwaggerProps {
+  endpoints: SwaggerEndpoint[]
+  apiTitle: string
+  apiVersion: string
+}
+
+const methods: Array<HttpMethod | 'all'> = ['all', 'get', 'post', 'put', 'patch', 'delete']
+
+export function SidebarSwagger({ endpoints, apiTitle, apiVersion }: SidebarSwaggerProps) {
+  const [search, setSearch] = useState('')
+  const [method, setMethod] = useState<HttpMethod | 'all'>('all')
+  const [groupVisibility, setGroupVisibility] = useState<Record<string, boolean>>({})
+  const selectedEndpointId = useUiStore((state) => state.selectedEndpointId)
+  const selectEndpoint = useUiStore((state) => state.selectEndpoint)
+  const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
+
+  const filteredGroups = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase('es')
+    const filtered = endpoints.filter((endpoint) => {
+      const matchesMethod = method === 'all' || endpoint.method === method
+      const searchable =
+        `${endpoint.summary} ${endpoint.path} ${endpoint.tags.join(' ')}`.toLocaleLowerCase('es')
+      return matchesMethod && (!term || searchable.includes(term))
+    })
+
+    return Object.entries(
+      filtered.reduce<Record<string, SwaggerEndpoint[]>>((groups, endpoint) => {
+        const tag = endpoint.tags[0] ?? 'General'
+        groups[tag] = [...(groups[tag] ?? []), endpoint]
+        return groups
+      }, {}),
+    )
+  }, [endpoints, method, search])
+
+  const isExpanded = (tag: string, index: number) =>
+    search.length > 0 || (groupVisibility[tag] ?? index < 2)
+  const toggleGroup = (tag: string, open: boolean) =>
+    setGroupVisibility((current) => ({ ...current, [tag]: !open }))
+
+  return (
+    <aside className="flex h-full w-[360px] max-w-[90vw] flex-col border-r border-slate-200 bg-white dark:border-white/10 dark:bg-[#091423]">
+      <div className="border-b border-slate-200 px-4 py-4 dark:border-white/10">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p
+              className="truncate text-sm font-bold text-slate-900 dark:text-white"
+              title={apiTitle}
+            >
+              {apiTitle}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {apiVersion} · {endpoints.length} operaciones
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-white/5"
+            aria-label="Cerrar navegación"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <label className="relative block">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
+            size={15}
+          />
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar ruta u operación…"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-9 text-xs text-slate-900 transition outline-none focus:border-cyan-500 focus:bg-white focus:ring-2 focus:ring-cyan-500/10 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:bg-black/30"
+          />
+        </label>
+        <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1">
+          <SlidersHorizontal className="mr-1 shrink-0 text-slate-400" size={14} />
+          {methods.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setMethod(item)}
+              className={`rounded-md px-2 py-1 text-[10px] font-bold tracking-wide uppercase transition ${method === item ? 'bg-slate-900 text-white dark:bg-cyan-400 dark:text-slate-950' : 'bg-slate-100 text-slate-500 hover:text-slate-900 dark:bg-white/5 dark:text-slate-400 dark:hover:text-white'}`}
+            >
+              {item === 'all' ? 'Todos' : item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Endpoints OpenAPI">
+        {filteredGroups.length ? (
+          filteredGroups.map(([tag, group], index) => {
+            const open = isExpanded(tag, index)
+            return (
+              <div key={tag} className="mb-1">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(tag, open)}
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+                  aria-expanded={open}
+                >
+                  <ChevronDown
+                    size={14}
+                    className={`shrink-0 text-slate-400 transition ${open ? '' : '-rotate-90'}`}
+                  />
+                  <span className="line-clamp-2 flex-1">{tag}</span>
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                    {group.length}
+                  </span>
+                </button>
+                {open && (
+                  <div className="ml-3 border-l border-slate-200 pl-2 dark:border-white/10">
+                    {group.map((endpoint) => (
+                      <button
+                        key={endpoint.id}
+                        type="button"
+                        onClick={() => selectEndpoint(endpoint.id)}
+                        className={`my-0.5 flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left transition ${selectedEndpointId === endpoint.id ? 'bg-cyan-500/10 ring-1 ring-cyan-500/20' : 'hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                      >
+                        <MethodBadge method={endpoint.method} compact />
+                        <span className="min-w-0">
+                          <span className="line-clamp-2 block text-[11px] leading-4 font-medium text-slate-700 dark:text-slate-300">
+                            {endpoint.summary}
+                          </span>
+                          <code className="mt-0.5 block truncate text-[10px] text-slate-400">
+                            {endpoint.path}
+                          </code>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })
+        ) : (
+          <div className="px-5 py-12 text-center">
+            <ChevronsUpDown className="mx-auto mb-3 text-slate-300 dark:text-slate-600" size={28} />
+            <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              Sin coincidencias
+            </p>
+            <p className="mt-1 text-xs text-slate-400">Prueba con otro término o método.</p>
+          </div>
+        )}
+      </nav>
+    </aside>
+  )
+}

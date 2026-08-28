@@ -1,0 +1,17 @@
+{
+  "name": "traductor-api-functions",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.2",
+    "typescript": "~5.9.3"
+  }
+}

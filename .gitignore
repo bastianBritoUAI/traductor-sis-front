@@ -1,0 +1,11 @@
+node_modules
+dist
+api/dist
+api/local.settings.json
+.env
+.env.local
+.env.*.local
+.npm-cache
+coverage
+*.log
+.DS_Store
