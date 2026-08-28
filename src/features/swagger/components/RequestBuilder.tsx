@@ -14,18 +14,13 @@ import { ExecutionErrorViewer, ResponseViewer } from './ResponseViewer'
 function buildInitialParameters(endpoint: SwaggerEndpoint): ParameterValues {
   return Object.fromEntries(
     endpoint.parameters.map((parameter) => {
-      const example = parameter.example
+      const usesDefaultValue = ['page', 'pagesize'].includes(parameter.name.toLowerCase())
+      const example = usesDefaultValue ? parameter.example : undefined
       const value =
         example === undefined ? '' : typeof example === 'string' ? example : JSON.stringify(example)
       return [`${parameter.location}:${parameter.name}`, value]
     }),
   )
-}
-
-function buildInitialBody(endpoint: SwaggerEndpoint) {
-  return endpoint.requestBody?.example === undefined
-    ? '{}'
-    : JSON.stringify(endpoint.requestBody.example, null, 2)
 }
 
 interface RequestBuilderProps {
@@ -50,7 +45,7 @@ export function RequestBuilder({
   const [parameters, setParameters] = useState<ParameterValues>(() =>
     buildInitialParameters(endpoint),
   )
-  const [body, setBody] = useState(() => buildInitialBody(endpoint))
+  const [body, setBody] = useState('')
   const [lastExecution, setLastExecution] = useState(initialExecution)
   const pendingExecution = useRef<PendingExecution>(undefined)
 
@@ -139,7 +134,7 @@ export function RequestBuilder({
     setParameters(
       Object.fromEntries(endpoint.parameters.map((item) => [`${item.location}:${item.name}`, ''])),
     )
-    setBody('{}')
+    setBody('')
     execution.reset()
     pendingExecution.current = undefined
     updateExecution(undefined)
