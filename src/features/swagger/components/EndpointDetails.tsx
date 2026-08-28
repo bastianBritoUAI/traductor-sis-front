@@ -1,10 +1,10 @@
 import { ChevronDown, Link2 } from 'lucide-react'
 import type { OpenAPIV3 } from 'openapi-types'
 import { JsonViewer } from '../../../components/JsonViewer'
+import { SchemaViewer } from '../../../components/SchemaViewer'
 import { getEnvironment } from '../../../config/env'
 import type { SwaggerEndpoint } from '../../../types/swagger'
 import {
-  describeSchema,
   getSchemaType,
   isReferenceObject,
   plainText,
@@ -72,8 +72,9 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
             </div>
           )}
           <div className="grid gap-5 xl:grid-cols-2">
-            <JsonViewer
-              value={describeSchema(endpoint.requestBody.schema, document)}
+            <SchemaViewer
+              schema={endpoint.requestBody.schema}
+              document={document}
               label="Esquema JSON"
             />
             <JsonViewer value={endpoint.requestBody.example} label="Ejemplo de request" />
@@ -120,8 +121,9 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
                   />
                 </summary>
                 <div className="grid gap-4 border-t border-slate-200 p-4 xl:grid-cols-2 dark:border-white/10">
-                  <JsonViewer
-                    value={describeSchema(response.schema, document)}
+                  <SchemaViewer
+                    schema={response.schema}
+                    document={document}
                     label="Modelo esperado"
                   />
                   <JsonViewer value={response.example} label="Ejemplo JSON" />
