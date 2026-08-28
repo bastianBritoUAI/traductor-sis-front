@@ -82,9 +82,9 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
         </Section>
       )}
 
-      <RequestBuilder key={endpoint.id} endpoint={endpoint} />
+      <RequestBuilder endpoint={endpoint} />
 
-      <details key={endpoint.id} className="group/responses mt-9">
+      <details className="group/responses mt-9">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg py-2 marker:hidden">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Respuestas</h2>
           <span className="ml-auto text-[10px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
