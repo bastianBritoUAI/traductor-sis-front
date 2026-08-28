@@ -47,6 +47,7 @@ export function RequestBuilder({
   )
   const [body, setBody] = useState('')
   const [lastExecution, setLastExecution] = useState(initialExecution)
+  const [hasAttempted, setHasAttempted] = useState(false)
   const pendingExecution = useRef<PendingExecution>(undefined)
 
   const updateExecution = (record?: EndpointExecutionRecord) => {
@@ -92,6 +93,7 @@ export function RequestBuilder({
   })
 
   const run = () => {
+    setHasAttempted(true)
     const missing = endpoint.parameters.find(
       (parameter) =>
         parameter.required && !parameters[`${parameter.location}:${parameter.name}`]?.trim(),
@@ -135,6 +137,7 @@ export function RequestBuilder({
       Object.fromEntries(endpoint.parameters.map((item) => [`${item.location}:${item.name}`, ''])),
     )
     setBody('')
+    setHasAttempted(false)
     execution.reset()
     pendingExecution.current = undefined
     updateExecution(undefined)
@@ -231,12 +234,21 @@ export function RequestBuilder({
                     : undefined
                 const options =
                   enumOptions ?? (schemaType === 'boolean' ? ['true', 'false'] : undefined)
+                const invalid = hasAttempted && parameter.required && !parameters[key]?.trim()
                 return (
                   <label key={key} className="block">
-                    <span className="mb-2 flex items-center justify-between text-xs font-medium text-slate-600 dark:text-slate-300">
+                    <span
+                      className={`mb-2 flex items-center justify-between text-xs font-medium transition-colors ${
+                        invalid
+                          ? 'text-rose-500 dark:text-rose-400'
+                          : 'text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
                       <span>
                         {parameter.name}
-                        {parameter.required && <span className="ml-1 text-rose-500">*</span>}
+                        {parameter.required && (
+                          <span className={`ml-1 ${invalid ? 'text-rose-500' : 'text-rose-400/60'}`}>*</span>
+                        )}
                       </span>
                       <span className="font-mono text-[10px] text-slate-400">
                         {parameter.location} · {getSchemaType(parameter.schema)}
@@ -249,7 +261,11 @@ export function RequestBuilder({
                           setParameters((current) => ({ ...current, [key]: event.target.value }))
                         }
                         required={parameter.required}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-white/10 dark:bg-[#0a1421] dark:text-white"
+                        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none dark:bg-[#0a1421] dark:text-white ${
+                          invalid
+                            ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
+                            : 'border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-white/10'
+                        }`}
                       >
                         <option value="">Seleccionar…</option>
                         {options.map((option) => (
@@ -273,7 +289,11 @@ export function RequestBuilder({
                         }
                         required={parameter.required}
                         placeholder={parameter.description ?? `Valor de ${parameter.name}`}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-white/10 dark:bg-black/20 dark:text-white"
+                        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 dark:bg-black/20 dark:text-white ${
+                          invalid
+                            ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
+                            : 'border-slate-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/15 dark:border-white/10'
+                        }`}
                       />
                     )}
                   </label>
