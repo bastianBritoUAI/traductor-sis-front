@@ -15,13 +15,13 @@ import type { HttpMethod, SwaggerEndpoint } from '../../../types/swagger'
 
 // Clases pre-calculadas por método para evitar purga de Tailwind con strings dinámicos
 const methodSelectedStyle: Record<HttpMethod, string> = {
-  get: 'border-cyan-400 bg-cyan-500/[0.07] dark:bg-cyan-500/[0.09]',
-  post: 'border-emerald-400 bg-emerald-500/[0.07] dark:bg-emerald-500/[0.09]',
-  put: 'border-amber-400 bg-amber-500/[0.07] dark:bg-amber-500/[0.09]',
-  patch: 'border-violet-400 bg-violet-500/[0.07] dark:bg-violet-500/[0.09]',
-  delete: 'border-rose-400 bg-rose-500/[0.07] dark:bg-rose-500/[0.09]',
-  options: 'border-slate-400 bg-slate-500/[0.07] dark:bg-slate-500/[0.09]',
-  head: 'border-blue-400 bg-blue-500/[0.07] dark:bg-blue-500/[0.09]',
+  get: 'border-cyan-400 bg-cyan-500/10 dark:bg-cyan-500/20',
+  post: 'border-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20',
+  put: 'border-amber-400 bg-amber-500/10 dark:bg-amber-500/20',
+  patch: 'border-violet-400 bg-violet-500/10 dark:bg-violet-500/20',
+  delete: 'border-rose-400 bg-rose-500/10 dark:bg-rose-500/20',
+  options: 'border-slate-400 bg-slate-500/10 dark:bg-slate-500/20',
+  head: 'border-blue-400 bg-blue-500/10 dark:bg-blue-500/20',
 }
 
 interface SidebarSwaggerProps {
@@ -76,7 +76,7 @@ export function SidebarSwagger({
 
   if (desktop && sidebarCollapsed) {
     return (
-      <aside className="flex h-full w-14 flex-col items-center border-r border-slate-200 bg-white py-3 transition-[width] duration-200 dark:border-white/10 dark:bg-[#091423]">
+      <aside className="flex h-full w-14 flex-col items-center border-r border-slate-200 bg-white py-3 transition-[width] duration-200 dark:border-white/[0.08] dark:bg-[#070e1a]">
         <button
           type="button"
           onClick={toggleSidebarCollapsed}
@@ -94,8 +94,8 @@ export function SidebarSwagger({
   }
 
   return (
-    <aside className="flex h-full w-[360px] max-w-[90vw] flex-col border-r border-slate-200 bg-white transition-[width] duration-200 dark:border-white/10 dark:bg-[#091423]">
-      <div className="border-b border-slate-200 px-4 py-4 dark:border-white/10">
+    <aside className="flex h-full w-[360px] max-w-[90vw] flex-col border-r border-slate-200 bg-white transition-[width] duration-200 dark:border-white/[0.08] dark:bg-[#070e1a]">
+      <div className="border-b border-slate-200 px-4 py-4 dark:border-white/[0.08]">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p
@@ -139,7 +139,7 @@ export function SidebarSwagger({
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar ruta u operación…"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-9 text-xs text-slate-900 transition outline-none focus:border-cyan-500 focus:bg-white focus:ring-2 focus:ring-cyan-500/10 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:bg-black/30"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pr-3 pl-9 text-xs text-slate-900 transition outline-none focus:border-cyan-500 focus:bg-white focus:ring-2 focus:ring-cyan-500/10 dark:border-white/10 dark:bg-white/[0.07] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-cyan-500/60 dark:focus:bg-white/[0.09]"
           />
         </label>
         {/* <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-1">
@@ -181,17 +181,17 @@ export function SidebarSwagger({
                 <button
                   type="button"
                   onClick={() => toggleGroup(tag, open)}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-100 dark:hover:bg-white/5"
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-100 dark:hover:bg-white/[0.08]"
                   aria-expanded={open}
                 >
                   <ChevronDown
                     size={13}
-                    className={`shrink-0 text-slate-400 transition ${open ? '' : '-rotate-90'}`}
+                    className={`shrink-0 text-slate-400 transition dark:text-slate-500 ${open ? '' : '-rotate-90'}`}
                   />
-                  <span className="flex-1 truncate text-[11px] font-semibold tracking-wide text-slate-600 dark:text-slate-300">
+                  <span className="flex-1 truncate text-[11px] font-semibold tracking-wide text-slate-700 dark:text-slate-200">
                     {tag}
                   </span>
-                  <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-slate-400 dark:bg-white/5 dark:text-slate-500">
+                  <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-slate-500 dark:bg-white/10 dark:text-slate-400">
                     {group.length}
                   </span>
                 </button>
@@ -207,7 +207,7 @@ export function SidebarSwagger({
                           className={`group/endpoint flex items-center overflow-hidden rounded-r-lg border-l-[3px] transition-colors ${
                             selected
                               ? methodSelectedStyle[endpoint.method]
-                              : 'border-transparent hover:border-slate-200 hover:bg-slate-50 dark:hover:border-white/10 dark:hover:bg-white/[0.04]'
+                              : 'border-transparent hover:border-slate-300 hover:bg-slate-50 dark:hover:border-white/[0.12] dark:hover:bg-white/[0.07]'
                           }`}
                         >
                           <button
@@ -221,12 +221,12 @@ export function SidebarSwagger({
                                 className={`line-clamp-2 block text-[11px] leading-[1.35] font-medium ${
                                   selected
                                     ? 'text-slate-900 dark:text-white'
-                                    : 'text-slate-700 dark:text-slate-300'
+                                    : 'text-slate-700 dark:text-slate-200'
                                 }`}
                               >
                                 {endpoint.summary}
                               </span>
-                              <code className="mt-0.5 block truncate text-[10px] text-slate-400">
+                              <code className="mt-0.5 block truncate text-[10px] text-slate-400 dark:text-slate-500">
                                 {endpoint.path}
                               </code>
                             </span>
