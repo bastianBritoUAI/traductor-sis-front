@@ -2,7 +2,7 @@ import { CheckCircle2, Copy, WifiOff, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { JsonViewer } from '../../../components/JsonViewer'
 import type { EndpointExecutionRecord, EndpointExecutionResult } from '../../../types/swagger'
-import { getHttpStatusMessage } from '../../../utils/httpErrors'
+import { getHttpStatusMessage, extractApiErrorMessage } from '../../../utils/httpErrors'
 
 function formatTimestamp(timestamp: string) {
   return new Intl.DateTimeFormat('es-CL', {
@@ -59,7 +59,7 @@ export function ResponseViewer({
           role="alert"
           className="border-b border-amber-500/20 bg-amber-500/10 px-5 py-3 text-sm text-amber-800 dark:text-amber-200"
         >
-          {getHttpStatusMessage(result.status)}
+          {extractApiErrorMessage(result.data) ?? getHttpStatusMessage(result.status)}
         </div>
       )}
 
