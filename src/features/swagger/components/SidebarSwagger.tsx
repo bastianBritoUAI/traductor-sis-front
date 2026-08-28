@@ -11,7 +11,18 @@ import {
 import { useMemo, useState } from 'react'
 import { MethodBadge } from '../../../components/MethodBadge'
 import { useUiStore } from '../../../store/uiStore'
-import type { SwaggerEndpoint } from '../../../types/swagger'
+import type { HttpMethod, SwaggerEndpoint } from '../../../types/swagger'
+
+// Clases pre-calculadas por método para evitar purga de Tailwind con strings dinámicos
+const methodSelectedStyle: Record<HttpMethod, string> = {
+  get: 'border-cyan-400 bg-cyan-500/[0.07] dark:bg-cyan-500/[0.09]',
+  post: 'border-emerald-400 bg-emerald-500/[0.07] dark:bg-emerald-500/[0.09]',
+  put: 'border-amber-400 bg-amber-500/[0.07] dark:bg-amber-500/[0.09]',
+  patch: 'border-violet-400 bg-violet-500/[0.07] dark:bg-violet-500/[0.09]',
+  delete: 'border-rose-400 bg-rose-500/[0.07] dark:bg-rose-500/[0.09]',
+  options: 'border-slate-400 bg-slate-500/[0.07] dark:bg-slate-500/[0.09]',
+  head: 'border-blue-400 bg-blue-500/[0.07] dark:bg-blue-500/[0.09]',
+}
 
 interface SidebarSwaggerProps {
   endpoints: SwaggerEndpoint[]
@@ -165,39 +176,54 @@ export function SidebarSwagger({
           filteredGroups.map(([tag, group], index) => {
             const open = isExpanded(tag, index)
             return (
-              <div key={tag} className="mb-1">
+              <div key={tag} className={index > 0 ? 'mt-3' : ''}>
+                {/* group header — estilo label de sección */}
                 <button
                   type="button"
                   onClick={() => toggleGroup(tag, open)}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold text-slate-700 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/5"
+                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-slate-100 dark:hover:bg-white/5"
                   aria-expanded={open}
                 >
                   <ChevronDown
-                    size={14}
+                    size={13}
                     className={`shrink-0 text-slate-400 transition ${open ? '' : '-rotate-90'}`}
                   />
-                  <span className="line-clamp-2 flex-1">{tag}</span>
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                  <span className="flex-1 truncate text-[11px] font-semibold tracking-wide text-slate-600 dark:text-slate-300">
+                    {tag}
+                  </span>
+                  <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-bold tabular-nums text-slate-400 dark:bg-white/5 dark:text-slate-500">
                     {group.length}
                   </span>
                 </button>
+
                 {open && (
-                  <div className="ml-3 border-l border-slate-200 pl-2 dark:border-white/10">
+                  <div className="mt-0.5 space-y-px">
                     {group.map((endpoint) => {
                       const compared = comparisonEndpointIds.includes(endpoint.id)
+                      const selected = selectedEndpointId === endpoint.id
                       return (
                         <div
                           key={endpoint.id}
-                          className={`group/endpoint my-0.5 flex items-start rounded-lg transition ${selectedEndpointId === endpoint.id ? 'bg-cyan-500/10 ring-1 ring-cyan-500/20' : 'hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                          className={`group/endpoint flex items-center overflow-hidden rounded-r-lg border-l-[3px] transition-colors ${
+                            selected
+                              ? methodSelectedStyle[endpoint.method]
+                              : 'border-transparent hover:border-slate-200 hover:bg-slate-50 dark:hover:border-white/10 dark:hover:bg-white/[0.04]'
+                          }`}
                         >
                           <button
                             type="button"
                             onClick={() => selectEndpoint(endpoint.id)}
-                            className="flex min-w-0 flex-1 items-start gap-2 rounded-lg px-2 py-2 text-left"
+                            className="flex min-w-0 flex-1 items-start gap-2.5 px-2 py-2 text-left"
                           >
                             <MethodBadge method={endpoint.method} compact />
                             <span className="min-w-0">
-                              <span className="line-clamp-2 block text-[11px] leading-4 font-medium text-slate-700 dark:text-slate-300">
+                              <span
+                                className={`line-clamp-2 block text-[11px] leading-[1.35] font-medium ${
+                                  selected
+                                    ? 'text-slate-900 dark:text-white'
+                                    : 'text-slate-700 dark:text-slate-300'
+                                }`}
+                              >
                                 {endpoint.summary}
                               </span>
                               <code className="mt-0.5 block truncate text-[10px] text-slate-400">
@@ -205,15 +231,21 @@ export function SidebarSwagger({
                               </code>
                             </span>
                           </button>
+
+                          {/* botón de comparador — visible solo en hover o cuando está activo */}
                           <button
                             type="button"
                             onClick={() => toggleComparisonEndpoint(endpoint.id)}
-                            className={`mt-1.5 mr-1.5 shrink-0 rounded-md p-1.5 transition ${compared ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-300'}`}
+                            className={`mr-1.5 shrink-0 rounded-md p-1.5 transition ${
+                              compared
+                                ? 'bg-cyan-500 text-slate-950'
+                                : 'text-slate-400 opacity-0 hover:bg-cyan-500/10 hover:text-cyan-600 group-hover/endpoint:opacity-100 dark:hover:text-cyan-300'
+                            }`}
                             aria-pressed={compared}
                             aria-label={`${compared ? 'Quitar' : 'Agregar'} ${endpoint.summary} ${compared ? 'del' : 'al'} comparador`}
                             title={compared ? 'Quitar del comparador' : 'Agregar al comparador'}
                           >
-                            {compared ? <Check size={14} /> : <Plus size={14} />}
+                            {compared ? <Check size={13} /> : <Plus size={13} />}
                           </button>
                         </div>
                       )
