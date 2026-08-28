@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Copy } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight, Copy } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 interface JsonViewerProps {
@@ -6,6 +6,7 @@ interface JsonViewerProps {
   label?: string
   maxHeight?: string
   collapsed?: boolean
+  collapsibleNodes?: boolean
   footer?: React.ReactNode
 }
 
@@ -52,6 +53,7 @@ export function JsonViewer({
   label,
   maxHeight = 'max-h-96',
   collapsed = false,
+  collapsibleNodes = false,
   footer,
 }: JsonViewerProps) {
   const [copied, setCopied] = useState(false)
@@ -66,6 +68,14 @@ export function JsonViewer({
     return JSON.stringify(value ?? null, null, 2)
   }, [value])
   const tokens = useMemo(() => tokenizeJson(json), [json])
+  const treeValue = useMemo(() => {
+    if (typeof value !== 'string') return value ?? null
+    try {
+      return JSON.parse(value) as unknown
+    } catch {
+      return value
+    }
+  }, [value])
 
   const copy = async () => {
     await navigator.clipboard.writeText(json)
@@ -73,17 +83,20 @@ export function JsonViewer({
     window.setTimeout(() => setCopied(false), 1500)
   }
 
-  const content = (
-    <pre className={`${maxHeight} overflow-auto p-4 font-mono text-xs leading-5`}>
-      <code>
-        {tokens.map((token, index) => (
-          <span key={`${index}-${token.kind}`} className={tokenStyles[token.kind]}>
-            {token.value}
-          </span>
-        ))}
-      </code>
-    </pre>
-  )
+  const content =
+    collapsibleNodes && isJsonContainer(treeValue) ? (
+      <JsonTree key={json} value={treeValue} maxHeight={maxHeight} />
+    ) : (
+      <pre className={`${maxHeight} overflow-auto p-4 font-mono text-xs leading-5`}>
+        <code>
+          {tokens.map((token, index) => (
+            <span key={`${index}-${token.kind}`} className={tokenStyles[token.kind]}>
+              {token.value}
+            </span>
+          ))}
+        </code>
+      </pre>
+    )
 
   if (collapsed) {
     return (
@@ -136,4 +149,188 @@ export function JsonViewer({
       {footer}
     </div>
   )
+}
+
+type JsonContainer = Record<string, unknown> | unknown[]
+
+function isJsonContainer(value: unknown): value is JsonContainer {
+  return typeof value === 'object' && value !== null
+}
+
+function JsonTree({ value, maxHeight }: { value: JsonContainer; maxHeight: string }) {
+  const [collapsedPaths, setCollapsedPaths] = useState<Set<string>>(() => new Set())
+
+  const togglePath = (path: string) => {
+    setCollapsedPaths((current) => {
+      const next = new Set(current)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      return next
+    })
+  }
+
+  return (
+    <div
+      className={`${maxHeight} overflow-auto p-4 font-mono text-xs leading-5`}
+      aria-label="Árbol de respuesta JSON"
+    >
+      <JsonTreeNode
+        value={value}
+        path="$"
+        depth={0}
+        isLast
+        collapsedPaths={collapsedPaths}
+        onToggle={togglePath}
+      />
+    </div>
+  )
+}
+
+interface JsonTreeNodeProps {
+  value: unknown
+  name?: string
+  path: string
+  depth: number
+  isLast: boolean
+  collapsedPaths: Set<string>
+  onToggle: (path: string) => void
+}
+
+function JsonTreeNode({
+  value,
+  name,
+  path,
+  depth,
+  isLast,
+  collapsedPaths,
+  onToggle,
+}: JsonTreeNodeProps) {
+  const prefix =
+    name === undefined ? null : (
+      <>
+        <span className={tokenStyles.key}>{JSON.stringify(name)}</span>
+        <span className={tokenStyles.punctuation}>: </span>
+      </>
+    )
+
+  if (!isJsonContainer(value)) {
+    return (
+      <div
+        className="flex min-h-5 min-w-max items-center whitespace-pre"
+        style={{ paddingLeft: `${depth * 1.25}rem` }}
+      >
+        <span className="inline-block w-4 shrink-0" />
+        {prefix}
+        <JsonPrimitive value={value} />
+        {!isLast && <span className={tokenStyles.punctuation}>,</span>}
+      </div>
+    )
+  }
+
+  const array = Array.isArray(value)
+  const entries: Array<[string | undefined, unknown, string]> = array
+    ? value.map((item, index) => [undefined, item, `${path}[${index}]`])
+    : Object.entries(value).map(([key, item]) => [key, item, `${path}.${key}`])
+  const opening = array ? '[' : '{'
+  const closing = array ? ']' : '}'
+
+  if (!entries.length) {
+    return (
+      <div
+        className="flex min-h-5 min-w-max items-center whitespace-pre"
+        style={{ paddingLeft: `${depth * 1.25}rem` }}
+      >
+        <span className="inline-block w-4 shrink-0" />
+        {prefix}
+        <span className={tokenStyles.punctuation}>
+          {opening}
+          {closing}
+          {!isLast && ','}
+        </span>
+      </div>
+    )
+  }
+
+  const nodeCollapsed = collapsedPaths.has(path)
+  const accessibleName =
+    name !== undefined ? `campo ${name}` : path === '$' ? 'respuesta JSON' : path
+
+  return (
+    <>
+      <div
+        className="flex min-h-5 min-w-max items-center whitespace-pre"
+        style={{ paddingLeft: `${depth * 1.25}rem` }}
+      >
+        <button
+          type="button"
+          onClick={() => onToggle(path)}
+          className="inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-slate-500 transition hover:bg-white/10 hover:text-white"
+          aria-expanded={!nodeCollapsed}
+          aria-label={`${nodeCollapsed ? 'Expandir' : 'Colapsar'} ${accessibleName}`}
+        >
+          <ChevronRight className={`transition ${nodeCollapsed ? '' : 'rotate-90'}`} size={12} />
+        </button>
+        {prefix}
+        <span className={tokenStyles.punctuation}>{opening}</span>
+        {nodeCollapsed && (
+          <>
+            <span className="text-slate-500">
+              {' '}
+              … {entries.length} {array ? 'elementos' : 'campos'}{' '}
+            </span>
+            <span className={tokenStyles.punctuation}>
+              {closing}
+              {!isLast && ','}
+            </span>
+          </>
+        )}
+      </div>
+
+      {!nodeCollapsed &&
+        entries.map(([childName, childValue, childPath], index) => (
+          <JsonTreeNode
+            key={childPath}
+            value={childValue}
+            name={childName}
+            path={childPath}
+            depth={depth + 1}
+            isLast={index === entries.length - 1}
+            collapsedPaths={collapsedPaths}
+            onToggle={onToggle}
+          />
+        ))}
+
+      {!nodeCollapsed && (
+        <div
+          className="flex min-h-5 min-w-max items-center whitespace-pre"
+          style={{ paddingLeft: `${depth * 1.25}rem` }}
+        >
+          <span className="inline-block w-4 shrink-0" />
+          <span className={tokenStyles.punctuation}>
+            {closing}
+            {!isLast && ','}
+          </span>
+        </div>
+      )}
+    </>
+  )
+}
+
+function JsonPrimitive({ value }: { value: unknown }) {
+  if (value === null || value === undefined) {
+    return <span className={tokenStyles.null}>null</span>
+  }
+  if (typeof value === 'string') {
+    return <span className={tokenStyles.string}>{JSON.stringify(value)}</span>
+  }
+  if (typeof value === 'boolean') {
+    return <span className={tokenStyles.boolean}>{String(value)}</span>
+  }
+  if (typeof value === 'number') {
+    return <span className={tokenStyles.number}>{String(value)}</span>
+  }
+  if (typeof value === 'bigint') {
+    return <span className={tokenStyles.number}>{value.toString()}</span>
+  }
+  return <span className={tokenStyles.null}>{JSON.stringify(value) ?? 'null'}</span>
 }
