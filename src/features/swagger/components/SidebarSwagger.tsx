@@ -70,12 +70,11 @@ export function SidebarSwagger({
     )
   }, [endpoints, search])
 
-  const isExpanded = (tag: string, index: number) =>
-    search.length > 0 || (groupVisibility[tag] ?? index < 2)
+  const isExpanded = (tag: string) => search.length > 0 || groupVisibility[tag] === true
   const toggleGroup = (tag: string, open: boolean) =>
     setGroupVisibility((current) => ({ ...current, [tag]: !open }))
 
-  const allExpanded = filteredGroups.every(([tag], index) => isExpanded(tag, index))
+  const allExpanded = filteredGroups.every(([tag]) => isExpanded(tag))
   const toggleAllGroups = () => {
     const next = !allExpanded
     setGroupVisibility(Object.fromEntries(filteredGroups.map(([tag]) => [tag, next])))
@@ -194,7 +193,7 @@ export function SidebarSwagger({
         <div className="px-2 py-3">
           {filteredGroups.length ? (
             filteredGroups.map(([tag, group], index) => {
-              const open = isExpanded(tag, index)
+              const open = isExpanded(tag)
               return (
                 <div key={tag} className={index > 0 ? 'mt-3' : ''}>
                   {/* group header — estilo label de sección */}
