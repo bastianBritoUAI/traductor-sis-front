@@ -1,6 +1,7 @@
 import { ChevronDown, Link2 } from 'lucide-react'
 import type { OpenAPIV3 } from 'openapi-types'
 import { JsonViewer } from '../../../components/JsonViewer'
+import { MethodBadge } from '../../../components/MethodBadge'
 import { SchemaViewer } from '../../../components/SchemaViewer'
 import { getEnvironment } from '../../../config/env'
 import type { SwaggerEndpoint } from '../../../types/swagger'
@@ -26,15 +27,31 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
   return (
     <article className="mx-auto w-full max-w-[1120px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
       <div className="mb-8">
+        <header className="mb-5 rounded-lg border border-slate-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-white/[0.025]">
+          <div className="flex items-start gap-3">
+            <MethodBadge method={endpoint.method} />
+            <div className="min-w-0">
+              <div className="flex items-start gap-2">
+                <Link2 className="mt-1 shrink-0 text-slate-400" size={16} />
+                <h1 className="min-w-0 break-all font-mono text-base font-bold text-slate-900 sm:text-lg dark:text-white">
+                  {fullUrl}
+                </h1>
+                {endpoint.deprecated && (
+                  <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                    Deprecado
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                {plainText(endpoint.description) || 'Sin descripción adicional.'}
+              </p>
+            </div>
+          </div>
+        </header>
         <details className="group/summary overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:hidden">
             <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
               Resumen del endpoint
-              {endpoint.deprecated && (
-                <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
-                  Deprecado
-                </span>
-              )}
             </span>
             <ChevronDown
               className="shrink-0 text-slate-400 transition-transform group-open/summary:rotate-180"
@@ -47,10 +64,6 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
             </p>
           </div>
         </details>
-        <div className="mt-3 flex items-center gap-3 overflow-x-auto rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-white/[0.025]">
-          <Link2 className="shrink-0 text-slate-400" size={16} />
-          <code className="text-xs text-slate-700 dark:text-slate-300">{fullUrl}</code>
-        </div>
       </div>
 
       {endpoint.requestBody && (
