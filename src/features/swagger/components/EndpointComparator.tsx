@@ -91,9 +91,16 @@ export function EndpointComparator({ endpoints }: EndpointComparatorProps) {
                   <div className="flex items-start gap-3">
                     <MethodBadge method={endpoint.method} />
                     <div className="min-w-0 flex-1">
-                      <h2 className="line-clamp-2 text-sm font-bold text-slate-900 dark:text-white">
-                        {endpoint.summary}
-                      </h2>
+                      <div className="flex items-start gap-2">
+                        <h2 className="line-clamp-2 min-w-0 flex-1 text-sm font-bold text-slate-900 dark:text-white">
+                          {endpoint.summary}
+                        </h2>
+                        {endpoint.deprecated && (
+                          <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                            Deprecado
+                          </span>
+                        )}
+                      </div>
                       <code className="mt-1 block truncate text-[11px] text-slate-500">
                         {endpoint.path}
                       </code>

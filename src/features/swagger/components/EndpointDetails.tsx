@@ -28,8 +28,13 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
       <div className="mb-8">
         <details className="group/summary overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:hidden">
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
               Resumen del endpoint
+              {endpoint.deprecated && (
+                <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                  Deprecado
+                </span>
+              )}
             </span>
             <ChevronDown
               className="shrink-0 text-slate-400 transition-transform group-open/summary:rotate-180"
@@ -84,7 +89,7 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
 
       <RequestBuilder endpoint={endpoint} />
 
-      <details className="group/responses mt-9">
+      <details className="group/responses mt-9" open>
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg py-2 marker:hidden">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Respuestas</h2>
           <span className="ml-auto text-[10px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
