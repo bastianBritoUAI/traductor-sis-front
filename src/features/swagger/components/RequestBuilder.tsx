@@ -23,6 +23,19 @@ function buildInitialParameters(endpoint: SwaggerEndpoint): ParameterValues {
   )
 }
 
+function buildInitialBody(endpoint: SwaggerEndpoint): string {
+  const requestBody = endpoint.requestBody
+  if (!requestBody || requestBody.example === undefined) return ''
+
+  if (requestBody.contentType.includes('json')) {
+    return JSON.stringify(requestBody.example, null, 2)
+  }
+
+  return typeof requestBody.example === 'string'
+    ? requestBody.example
+    : JSON.stringify(requestBody.example, null, 2)
+}
+
 interface RequestBuilderProps {
   endpoint: SwaggerEndpoint
   compact?: boolean
@@ -45,7 +58,7 @@ export function RequestBuilder({
   const [parameters, setParameters] = useState<ParameterValues>(() =>
     buildInitialParameters(endpoint),
   )
-  const [body, setBody] = useState('')
+  const [body, setBody] = useState(() => buildInitialBody(endpoint))
   const [lastExecution, setLastExecution] = useState(initialExecution)
   const [hasAttempted, setHasAttempted] = useState(false)
   const pendingExecution = useRef<PendingExecution>(undefined)
@@ -247,7 +260,11 @@ export function RequestBuilder({
                       <span>
                         {parameter.name}
                         {parameter.required && (
-                          <span className={`ml-1 ${invalid ? 'text-rose-500' : 'text-rose-400/60'}`}>*</span>
+                          <span
+                            className={`ml-1 ${invalid ? 'text-rose-500' : 'text-rose-400/60'}`}
+                          >
+                            *
+                          </span>
                         )}
                       </span>
                       <span className="font-mono text-[10px] text-slate-400">
@@ -303,7 +320,16 @@ export function RequestBuilder({
           )}
 
           {endpoint.requestBody && (
-            <JsonEditor value={body} onChange={setBody} label={endpoint.requestBody.contentType} />
+            <div>
+              <JsonEditor
+                value={body}
+                onChange={setBody}
+                label={endpoint.requestBody.contentType}
+              />
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Request prellenada con el ejemplo definido por el contrato OpenAPI.
+              </p>
+            </div>
           )}
 
           {!endpoint.parameters.length && !endpoint.requestBody && (
