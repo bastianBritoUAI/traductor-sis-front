@@ -1,9 +1,8 @@
-import { ChevronDown, Link2 } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import type { OpenAPIV3 } from 'openapi-types'
 import { JsonViewer } from '../../../components/JsonViewer'
 import { MethodBadge } from '../../../components/MethodBadge'
 import { SchemaViewer } from '../../../components/SchemaViewer'
-import { getEnvironment } from '../../../config/env'
 import type { SwaggerEndpoint } from '../../../types/swagger'
 import {
   getSchemaType,
@@ -19,7 +18,6 @@ interface EndpointDetailsProps {
 }
 
 export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
-  const fullUrl = `${getEnvironment().apiBaseUrl}${endpoint.path}`
   const bodyFields = endpoint.requestBody
     ? getBodyFields(endpoint.requestBody.schema, document)
     : []
@@ -32,9 +30,8 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
             <MethodBadge method={endpoint.method} />
             <div className="min-w-0">
               <div className="flex items-start gap-2">
-                <Link2 className="mt-1 shrink-0 text-slate-400" size={16} />
                 <h1 className="min-w-0 break-all font-mono text-base font-bold text-slate-900 sm:text-lg dark:text-white">
-                  {fullUrl}
+                  {endpoint.path}
                 </h1>
                 {endpoint.deprecated && (
                   <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
@@ -43,7 +40,7 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
                 )}
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                {plainText(endpoint.description) || 'Sin descripción adicional.'}
+                {plainText(endpoint.summary) || 'Sin resumen adicional.'}
               </p>
             </div>
           </div>
