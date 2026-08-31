@@ -36,8 +36,9 @@ describe('SchemaViewer tree', () => {
     expect(viewer.className).toContain('bg-slate-950')
     expect(screen.queryByRole('table')).toBeNull()
     expect(screen.getByText('profile')).toBeTruthy()
-    expect(screen.getByText('Tipo de dato: object')).toBeTruthy()
-    expect(screen.getByText('Nullable: Sí')).toBeTruthy()
+    expect(screen.getByText('object')).toBeTruthy()
+    expect(screen.getByText('Null')).toBeTruthy()
+    expect(screen.getByText('Not Null')).toBeTruthy()
     expect(screen.getByText('Datos del perfil')).toBeTruthy()
     expect(screen.getByText('name')).toBeTruthy()
     expect(screen.getByText('Nombre visible')).toBeTruthy()
@@ -77,7 +78,7 @@ describe('SchemaViewer tree', () => {
 
     render(<SchemaViewer schema={schema} document={{} as OpenAPIV3.Document} />)
 
-    expect(screen.getByText('Tipo de dato: array<object>')).toBeTruthy()
+    expect(screen.getByText('array<object>')).toBeTruthy()
     expect(screen.getByText('id')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'Colapsar campo items' }))
@@ -99,12 +100,12 @@ describe('SchemaViewer tree', () => {
 
     render(<SchemaViewer schema={schema} document={{} as OpenAPIV3.Document} />)
 
-    expect(screen.getByText('Tipo de dato: string').className).toContain('text-emerald-300')
-    expect(screen.getByText('Tipo de dato: integer (int64)').className).toContain('text-blue-300')
-    expect(screen.getByText('Tipo de dato: number (double)').className).toContain('text-blue-300')
-    expect(screen.getByText('Tipo de dato: string (date-time)').className).toContain(
+    expect(screen.getByText('string').className).toContain('text-emerald-300')
+    expect(screen.getByText('integer (int64)').className).toContain('text-blue-300')
+    expect(screen.getByText('number (double)').className).toContain('text-blue-300')
+    expect(screen.getByText('string (date-time)').className).toContain(
       'text-cyan-300',
     )
-    expect(screen.getByText('Tipo de dato: boolean').className).toContain('text-orange-300')
+    expect(screen.getByText('boolean').className).toContain('text-orange-300')
   })
 })

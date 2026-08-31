@@ -275,7 +275,7 @@ function PropertyNode({ name, required, schemaOrRef, document, depth }: Property
             title="Tipo de dato"
             className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${typeStyle(schemaOrRef, document)}`}
           >
-            Tipo de dato: {typeLabel(schemaOrRef, document)}
+            {typeLabel(schemaOrRef, document)}
           </span>
           <span
             className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
@@ -284,7 +284,7 @@ function PropertyNode({ name, required, schemaOrRef, document, depth }: Property
                 : 'bg-slate-800/70 text-slate-400'
             }`}
           >
-            Nullable: {effective?.nullable ? 'Sí' : 'No'}
+            {effective?.nullable ? 'Null' : 'Not Null'}
           </span>
         </div>
 
@@ -320,7 +320,6 @@ function PrimitiveSchema({ schema }: { schema: OpenAPIV3.SchemaObject }) {
           <span
             className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${TYPE_STYLES[dataTypeCategory(schema)]}`}
           >
-            Tipo de dato:{' '}
             {schema.format
               ? `${schema.type ?? 'object'} (${schema.format})`
               : (schema.type ?? 'object')}
@@ -330,7 +329,7 @@ function PrimitiveSchema({ schema }: { schema: OpenAPIV3.SchemaObject }) {
               schema.nullable ? 'bg-teal-400/10 text-teal-300' : 'bg-slate-800/70 text-slate-400'
             }`}
           >
-            Nullable: {schema.nullable ? 'Sí' : 'No'}
+            {schema.nullable ? 'Null' : 'Not Null'}
           </span>
         </div>
         <p
