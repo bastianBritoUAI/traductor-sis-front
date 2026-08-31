@@ -125,13 +125,13 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
                     size={16}
                   />
                 </summary>
-                <div className="grid gap-4 border-t border-slate-200 p-4 xl:grid-cols-2 dark:border-white/10">
+                <div className="grid items-stretch gap-4 border-t border-slate-200 p-4 xl:grid-cols-2 dark:border-white/10">
                   <SchemaViewer
                     schema={response.schema}
                     document={document}
                     label="Modelo esperado"
                   />
-                  <JsonViewer value={response.example} label="Ejemplo JSON" />
+                  <JsonViewer value={response.example} label="Ejemplo JSON" fillHeight />
                 </div>
               </details>
             )

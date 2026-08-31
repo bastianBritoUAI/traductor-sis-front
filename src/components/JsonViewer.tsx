@@ -5,6 +5,7 @@ interface JsonViewerProps {
   value: unknown
   label?: string
   maxHeight?: string
+  fillHeight?: boolean
   collapsed?: boolean
   collapsibleNodes?: boolean
   footer?: React.ReactNode
@@ -52,6 +53,7 @@ export function JsonViewer({
   value,
   label,
   maxHeight = 'max-h-96',
+  fillHeight = false,
   collapsed = false,
   collapsibleNodes = false,
   footer,
@@ -83,11 +85,13 @@ export function JsonViewer({
     window.setTimeout(() => setCopied(false), 1500)
   }
 
+  const contentHeight = fillHeight ? 'min-h-0 flex-1' : maxHeight
+
   const content =
     collapsibleNodes && isJsonContainer(treeValue) ? (
-      <JsonTree key={json} value={treeValue} maxHeight={maxHeight} />
+      <JsonTree key={json} value={treeValue} maxHeight={contentHeight} />
     ) : (
-      <pre className={`${maxHeight} overflow-auto p-4 font-mono text-xs leading-5`}>
+      <pre className={`${contentHeight} overflow-auto p-4 font-mono text-xs leading-5`}>
         <code>
           {tokens.map((token, index) => (
             <span key={`${index}-${token.kind}`} className={tokenStyles[token.kind]}>
@@ -130,8 +134,12 @@ export function JsonViewer({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10">
-      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
+    <div
+      className={`overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10 ${
+        fillHeight ? 'flex h-full min-h-0 flex-col' : ''
+      }`}
+    >
+      <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-2">
         <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
           {label ?? 'JSON'}
         </span>

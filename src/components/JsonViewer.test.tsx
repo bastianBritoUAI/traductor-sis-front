@@ -28,4 +28,19 @@ describe('JsonViewer interactive tree', () => {
 
     expect(screen.getByText('"name"')).toBeTruthy()
   })
+
+  it('fills the height of its parent when requested', () => {
+    const { container } = render(
+      <JsonViewer value={{ status: 'ok' }} label="Ejemplo JSON" fillHeight />,
+    )
+
+    const viewer = container.firstElementChild
+    const content = container.querySelector('pre')
+
+    expect(viewer?.className).toContain('h-full')
+    expect(viewer?.className).toContain('flex-col')
+    expect(content?.className).toContain('flex-1')
+    expect(content?.className).toContain('min-h-0')
+    expect(content?.className).not.toContain('max-h-96')
+  })
 })
