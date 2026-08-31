@@ -1,6 +1,6 @@
 import axios, { AxiosError, type AxiosResponse } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { setEnvironment } from '../../config/env'
+import { setActiveApi, setEnvironment } from '../../config/env'
 import { clearToken, getAccessToken, refreshToken } from './token.service'
 import { getStoredToken } from './token.storage'
 
@@ -34,8 +34,21 @@ describe('token service', () => {
       azureAdInstance: 'https://login.microsoftonline.com',
       azureAdClientId: 'spa-client-id',
       azureAdTenantId: 'tenant-id',
-      apiBaseUrl: 'https://api.example.test',
-      openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+      defaultApiId: 'traductor',
+      apis: [
+        {
+          id: 'traductor',
+          name: 'Traductor SIS',
+          baseUrl: 'https://api.example.test',
+          openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+        },
+        {
+          id: 'reglamento',
+          name: 'Reglamento SIS',
+          baseUrl: 'https://reglamento.example.test',
+          openApiUrl: 'https://reglamento-docs.example.test/swagger/v1/swagger.json',
+        },
+      ],
     })
     clearToken()
   })
@@ -53,8 +66,8 @@ describe('token service', () => {
 
     expect(tokens).toEqual(['shared-token', 'shared-token', 'shared-token'])
     expect(post).toHaveBeenCalledTimes(1)
-    expect(post.mock.calls[0]?.[0]).toBe('/api/tokenApiTraductor')
-    expect(post.mock.calls[0]?.[1]).toBeNull()
+    expect(post.mock.calls[0]?.[0]).toBe('/api/tokenApi')
+    expect(post.mock.calls[0]?.[1]).toEqual({ apiId: 'traductor' })
     expect(getStoredToken()).toMatchObject({
       accessToken: 'shared-token',
       tokenType: 'Bearer',
@@ -71,6 +84,16 @@ describe('token service', () => {
       accessToken: 'plain-access-token',
       tokenType: 'Bearer',
     })
+  })
+
+  it('requests credentials for the currently selected API', async () => {
+    const post = vi.spyOn(axios, 'post').mockResolvedValue(tokenResponse('reglamento-token'))
+    setActiveApi('reglamento')
+
+    await getAccessToken()
+
+    expect(post.mock.calls[0]?.[0]).toBe('/api/tokenApi')
+    expect(post.mock.calls[0]?.[1]).toEqual({ apiId: 'reglamento' })
   })
 
   it('reuses a valid token and renews it inside the 60 second buffer', async () => {

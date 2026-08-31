@@ -8,6 +8,7 @@ import { setEnvironment, validateEnvironment } from './config/env'
 import { ConfigurationErrorPage } from './pages/ConfigurationErrorPage'
 import { AppRoutes } from './routes/AppRoutes'
 import './styles.css'
+import { useApiSelectionStore } from './store/apiSelectionStore'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) throw new Error('No se encontró el elemento raíz de la aplicación.')
@@ -28,6 +29,8 @@ async function bootstrap() {
     VITE_AZURE_AD_TENANT_ID: import.meta.env.VITE_AZURE_AD_TENANT_ID,
     VITE_SIS_TRADUCTOR_BASE_URL: import.meta.env.VITE_SIS_TRADUCTOR_BASE_URL,
     VITE_SIS_TRADUCTOR_OPENAPI_URL: import.meta.env.VITE_SIS_TRADUCTOR_OPENAPI_URL,
+    VITE_API_BASE_URL_REGLAMENTO: import.meta.env.VITE_API_BASE_URL_REGLAMENTO,
+    VITE_API_OPENAPI_URL_REGLAMENTO: import.meta.env.VITE_API_OPENAPI_URL_REGLAMENTO,
   })
 
   if (!validation.success) {
@@ -36,6 +39,7 @@ async function bootstrap() {
   }
 
   setEnvironment(validation.data)
+  useApiSelectionStore.getState().initialize(validation.data.defaultApiId)
   const msalInstance = getMsalInstance()
 
   await msalInstance.initialize()

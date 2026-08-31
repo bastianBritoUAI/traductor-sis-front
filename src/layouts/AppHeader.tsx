@@ -1,10 +1,12 @@
 import { useMsal } from '@azure/msal-react'
-import { CircleCheck, CircleX, LoaderCircle, LogOut, Menu, Moon, Server, Sun } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { getEnvironment } from '../config/env'
+import { CircleCheck, CircleX, LoaderCircle, LogOut, Menu, Moon, Sun } from 'lucide-react'
+import { useEffect, type ReactNode } from 'react'
+import { getActiveApi } from '../config/env'
+import { ApiSelector } from '../components/ApiSelector'
 import { useApiHealth } from '../hooks/useApiHealth'
 import { useOpenApi } from '../hooks/useOpenApi'
 import { useUiStore } from '../store/uiStore'
+import { useApiSelectionStore } from '../store/apiSelectionStore'
 import { getRequestErrorMessage } from '../utils/httpErrors'
 
 type ConnectionState = 'checking' | 'available' | 'unavailable'
@@ -13,10 +15,15 @@ export function AppHeader() {
   const theme = useUiStore((state) => state.theme)
   const toggleTheme = useUiStore((state) => state.toggleTheme)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
+  useApiSelectionStore((state) => state.activeApiId)
   const { instance, accounts } = useMsal()
   const swagger = useOpenApi()
   const api = useApiHealth()
-  const baseUrl = getEnvironment().apiBaseUrl
+  const activeApi = getActiveApi()
+  const baseUrl = activeApi.baseUrl
+  useEffect(() => {
+    document.title = `${activeApi.name} · API Explorer`
+  }, [activeApi.name])
   const swaggerState: ConnectionState = swagger.isLoading
     ? 'checking'
     : swagger.isError
@@ -54,7 +61,7 @@ export function AppHeader() {
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-bold tracking-tight text-slate-900 dark:text-white">
-              Traductor SIS
+              {activeApi.name}
             </p>
             <p className="hidden text-[10px] font-semibold tracking-[0.14em] text-emerald-600 uppercase sm:block dark:text-emerald-400">
               API Explorer
@@ -65,16 +72,7 @@ export function AppHeader() {
           </div>
         </div>
 
-        <div
-          className="mx-auto hidden max-w-xl min-w-0 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 md:flex dark:border-white/10 dark:bg-black/20"
-          title={baseUrl}
-        >
-          <Server className="shrink-0 text-slate-400" size={14} />
-          <span className="shrink-0 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-            API
-          </span>
-          <code className="truncate text-[11px] text-slate-600 dark:text-slate-300">{baseUrl}</code>
-        </div>
+        <ApiSelector />
 
         <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
           <ConnectionBadge

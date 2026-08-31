@@ -6,6 +6,8 @@ import {
   type InvocationContext,
 } from '@azure/functions'
 
+type ApiId = 'traductor' | 'reglamento'
+
 interface TokenConfiguration {
   tenantId: string
   scope: string
@@ -13,13 +15,24 @@ interface TokenConfiguration {
   clientSecret: string
 }
 
-function readTokenConfiguration(): TokenConfiguration {
-  const variableNames = {
-    tenantId: 'AZURE_AD_TENANT_ID',
+const tokenVariables: Record<ApiId, Omit<Record<keyof TokenConfiguration, string>, 'tenantId'>> = {
+  traductor: {
     scope: 'SIS_TRADUCTOR_SCOPE',
     clientId: 'SIS_TRADUCTOR_CLIENT_ID',
     clientSecret: 'SIS_TRADUCTOR_CLIENT_SECRET',
-  } as const
+  },
+  reglamento: {
+    scope: 'REGLAMENTOS_SCOPE',
+    clientId: 'REGLAMENTOS_CLIENT_ID',
+    clientSecret: 'REGLAMENTOS_CLIENT_SECRET',
+  },
+}
+
+function readTokenConfiguration(apiId: ApiId): TokenConfiguration {
+  const variableNames = {
+    tenantId: 'AZURE_AD_TENANT_ID',
+    ...tokenVariables[apiId],
+  }
 
   const missing = Object.values(variableNames).filter((name) => !process.env[name]?.trim())
   if (missing.length > 0) {
@@ -34,14 +47,24 @@ function readTokenConfiguration(): TokenConfiguration {
   }
 }
 
-app.http('tokenApiTraductor', {
+app.http('tokenApi', {
   methods: ['POST'],
   authLevel: 'anonymous',
-  handler: async (_request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
+  handler: async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
     try {
-      const configuration = readTokenConfiguration()
+      const requestWithJson = request as unknown as { json: () => Promise<unknown> }
+      const tokenRequest = (await requestWithJson.json()) as { apiId?: unknown }
+      const apiId = tokenRequest.apiId
+      if (apiId !== 'traductor' && apiId !== 'reglamento') {
+        return {
+          status: 400,
+          headers: { 'Cache-Control': 'no-store' },
+          jsonBody: { error: 'Invalid API selection.' },
+        }
+      }
+      const configuration = readTokenConfiguration(apiId)
       const tokenUrl = `https://login.microsoftonline.com/${configuration.tenantId}/oauth2/v2.0/token`
-      const body = new URLSearchParams({
+      const tokenBody = new URLSearchParams({
         client_id: configuration.clientId,
         client_secret: configuration.clientSecret,
         grant_type: 'client_credentials',
@@ -51,7 +74,7 @@ app.http('tokenApiTraductor', {
       const response = await fetch(tokenUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body,
+        body: tokenBody,
       })
       const responseText = await response.text()
       let responseBody: unknown
@@ -68,7 +91,7 @@ app.http('tokenApiTraductor', {
         jsonBody: responseBody,
       }
     } catch (error) {
-      context.error('Error al obtener el token de Traductor SIS.', error)
+      context.error('Error al obtener el token de la API seleccionada.', error)
       return {
         status: 500,
         headers: { 'Cache-Control': 'no-store' },

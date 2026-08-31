@@ -9,20 +9,30 @@ const environmentSchema = z.object({
   VITE_AZURE_AD_TENANT_ID: requiredText,
   VITE_SIS_TRADUCTOR_BASE_URL: requiredUrl,
   VITE_SIS_TRADUCTOR_OPENAPI_URL: requiredUrl,
+  VITE_API_BASE_URL_REGLAMENTO: requiredUrl,
+  VITE_API_OPENAPI_URL_REGLAMENTO: requiredUrl,
 })
+
+export interface ApiConfiguration {
+  id: 'traductor' | 'reglamento'
+  name: string
+  baseUrl: string
+  openApiUrl: string
+}
 
 export interface EnvironmentConfig {
   azureAdInstance: string
   azureAdClientId: string
   azureAdTenantId: string
-  apiBaseUrl: string
-  openApiUrl: string
+  apis: ApiConfiguration[]
+  defaultApiId: ApiConfiguration['id']
 }
 
 export type EnvironmentValidation =
   { success: true; data: EnvironmentConfig } | { success: false; errors: string[] }
 
 let environment: EnvironmentConfig | undefined
+let activeApiId: ApiConfiguration['id'] | undefined
 
 type EnvironmentSource = z.input<typeof environmentSchema>
 
@@ -36,7 +46,6 @@ export function validateEnvironment(source: EnvironmentSource): EnvironmentValid
     }
   }
 
-  const baseUrl = result.data.VITE_SIS_TRADUCTOR_BASE_URL.replace(/\/$/, '')
   const azureAdInstance = result.data.VITE_AZURE_AD_INSTANCE.replace(/\/$/, '')
 
   return {
@@ -45,14 +54,28 @@ export function validateEnvironment(source: EnvironmentSource): EnvironmentValid
       azureAdInstance,
       azureAdClientId: result.data.VITE_AZURE_AD_CLIENT_ID,
       azureAdTenantId: result.data.VITE_AZURE_AD_TENANT_ID,
-      apiBaseUrl: baseUrl,
-      openApiUrl: result.data.VITE_SIS_TRADUCTOR_OPENAPI_URL,
+      defaultApiId: 'traductor',
+      apis: [
+        {
+          id: 'traductor',
+          name: 'Traductor SIS',
+          baseUrl: result.data.VITE_SIS_TRADUCTOR_BASE_URL.replace(/\/$/, ''),
+          openApiUrl: result.data.VITE_SIS_TRADUCTOR_OPENAPI_URL,
+        },
+        {
+          id: 'reglamento',
+          name: 'Reglamento SIS',
+          baseUrl: result.data.VITE_API_BASE_URL_REGLAMENTO.replace(/\/$/, ''),
+          openApiUrl: result.data.VITE_API_OPENAPI_URL_REGLAMENTO,
+        },
+      ],
     },
   }
 }
 
 export function setEnvironment(config: EnvironmentConfig) {
   environment = config
+  activeApiId = config.defaultApiId
 }
 
 export function getEnvironment(): EnvironmentConfig {
@@ -61,4 +84,21 @@ export function getEnvironment(): EnvironmentConfig {
   }
 
   return environment
+}
+
+export function getAvailableApis(): ApiConfiguration[] {
+  return getEnvironment().apis
+}
+
+export function getActiveApi(): ApiConfiguration {
+  const api = getAvailableApis().find((item) => item.id === activeApiId)
+  if (!api) throw new Error('No hay una API activa configurada.')
+  return api
+}
+
+export function setActiveApi(id: ApiConfiguration['id']) {
+  if (!getAvailableApis().some((api) => api.id === id)) {
+    throw new Error(`La API "${id}" no está configurada.`)
+  }
+  activeApiId = id
 }

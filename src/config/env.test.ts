@@ -10,6 +10,9 @@ describe('environment configuration', () => {
         VITE_AZURE_AD_TENANT_ID: 'tenant-id',
         VITE_SIS_TRADUCTOR_BASE_URL: 'https://api.example.test/',
         VITE_SIS_TRADUCTOR_OPENAPI_URL: 'https://docs.example.test/swagger/v1/swagger.json',
+        VITE_API_BASE_URL_REGLAMENTO: 'https://reglamento.example.test/',
+        VITE_API_OPENAPI_URL_REGLAMENTO:
+          'https://reglamento-docs.example.test/swagger/v1/swagger.json',
       }),
     ).toEqual({
       success: true,
@@ -17,8 +20,21 @@ describe('environment configuration', () => {
         azureAdInstance: 'https://login.microsoftonline.com',
         azureAdClientId: 'spa-client-id',
         azureAdTenantId: 'tenant-id',
-        apiBaseUrl: 'https://api.example.test',
-        openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+        defaultApiId: 'traductor',
+        apis: [
+          {
+            id: 'traductor',
+            name: 'Traductor SIS',
+            baseUrl: 'https://api.example.test',
+            openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+          },
+          {
+            id: 'reglamento',
+            name: 'Reglamento SIS',
+            baseUrl: 'https://reglamento.example.test',
+            openApiUrl: 'https://reglamento-docs.example.test/swagger/v1/swagger.json',
+          },
+        ],
       },
     })
   })
@@ -31,6 +47,8 @@ describe('environment configuration', () => {
         VITE_AZURE_AD_TENANT_ID: '',
         VITE_SIS_TRADUCTOR_BASE_URL: 'not-a-url',
         VITE_SIS_TRADUCTOR_OPENAPI_URL: 'not-a-url',
+        VITE_API_BASE_URL_REGLAMENTO: 'not-a-url',
+        VITE_API_OPENAPI_URL_REGLAMENTO: 'not-a-url',
       }).success,
     ).toBe(false)
   })

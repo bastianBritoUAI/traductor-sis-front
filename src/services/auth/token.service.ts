@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { getActiveApi, type ApiConfiguration } from '../../config/env'
 import {
   DEFAULT_TOKEN_LIFETIME_SECONDS,
   DEFAULT_TOKEN_TYPE,
@@ -8,7 +9,7 @@ import {
 import { clearStoredToken, getStoredToken, isStoredTokenValid, storeToken } from './token.storage'
 import { TokenServiceError, type StoredToken, type TokenApiResponse } from './token.types'
 
-let pendingTokenRequest: Promise<string> | undefined
+const pendingTokenRequests = new Map<ApiConfiguration['id'], Promise<string>>()
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === 'object'
@@ -117,33 +118,39 @@ function toTokenServiceError(error: unknown): TokenServiceError {
   )
 }
 
-async function requestNewToken(): Promise<string> {
+async function requestNewToken(apiId: ApiConfiguration['id']): Promise<string> {
   try {
-    const response = await axios.post<unknown>(TOKEN_ENDPOINT, null, {
-      timeout: TOKEN_REQUEST_TIMEOUT_MS,
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-    })
+    const response = await axios.post<unknown>(
+      TOKEN_ENDPOINT,
+      { apiId },
+      {
+        timeout: TOKEN_REQUEST_TIMEOUT_MS,
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      },
+    )
     const token = normalizeToken(response.data)
-    storeToken(token)
+    if (getActiveApi().id === apiId) storeToken(token)
     return token.accessToken
   } catch (error) {
-    clearStoredToken()
+    if (getActiveApi().id === apiId) clearStoredToken()
     throw toTokenServiceError(error)
   }
 }
 
-function startTokenRequest(): Promise<string> {
-  if (pendingTokenRequest) return pendingTokenRequest
+function startTokenRequest(apiId: ApiConfiguration['id']): Promise<string> {
+  const pendingRequest = pendingTokenRequests.get(apiId)
+  if (pendingRequest) return pendingRequest
 
-  pendingTokenRequest = requestNewToken().finally(() => {
-    pendingTokenRequest = undefined
+  const request = requestNewToken(apiId).finally(() => {
+    pendingTokenRequests.delete(apiId)
   })
-  return pendingTokenRequest
+  pendingTokenRequests.set(apiId, request)
+  return request
 }
 
 export function getAccessToken(): Promise<string> {
   if (isStoredTokenValid()) return Promise.resolve(getStoredToken()!.accessToken)
-  return startTokenRequest()
+  return startTokenRequest(getActiveApi().id)
 }
 
 export function refreshToken(rejectedToken?: string): Promise<string> {
@@ -158,7 +165,7 @@ export function refreshToken(rejectedToken?: string): Promise<string> {
   }
 
   clearStoredToken()
-  return startTokenRequest()
+  return startTokenRequest(getActiveApi().id)
 }
 
 export function clearToken() {

@@ -1,8 +1,8 @@
 import axios, { AxiosHeaders, type AxiosAdapter, type AxiosResponse } from 'axios'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { setEnvironment } from '../../config/env'
+import { setActiveApi, setEnvironment } from '../../config/env'
 import { clearToken } from '../auth/token.service'
-import { createAuthenticatedApiClient, getOpenApiClient } from './axios.config'
+import { createAuthenticatedApiClient, getApiClient, getOpenApiClient } from './axios.config'
 
 function tokenResponse(accessToken: string): AxiosResponse {
   return {
@@ -30,8 +30,21 @@ describe('authenticated Axios client', () => {
       azureAdInstance: 'https://login.microsoftonline.com',
       azureAdClientId: 'spa-client-id',
       azureAdTenantId: 'tenant-id',
-      apiBaseUrl: 'https://api.example.test',
-      openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+      defaultApiId: 'traductor',
+      apis: [
+        {
+          id: 'traductor',
+          name: 'Traductor SIS',
+          baseUrl: 'https://api.example.test',
+          openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+        },
+        {
+          id: 'reglamento',
+          name: 'Reglamento SIS',
+          baseUrl: 'https://reglamento.example.test',
+          openApiUrl: 'https://reglamento-docs.example.test/swagger/v1/swagger.json',
+        },
+      ],
     })
     clearToken()
   })
@@ -80,6 +93,17 @@ describe('authenticated Axios client', () => {
     expect(apiClient.getUri({ url: '/api/level' })).toBe('https://api.example.test/api/level')
     expect(getOpenApiClient().getUri({ url: '' })).toBe(
       'https://docs.example.test/swagger/v1/swagger.json',
+    )
+  })
+
+  it('uses the selected API for both clients', () => {
+    setActiveApi('reglamento')
+
+    expect(getApiClient().getUri({ url: '/api/reglamentos' })).toBe(
+      'https://reglamento.example.test/api/reglamentos',
+    )
+    expect(getOpenApiClient().getUri({ url: '' })).toBe(
+      'https://reglamento-docs.example.test/swagger/v1/swagger.json',
     )
   })
 

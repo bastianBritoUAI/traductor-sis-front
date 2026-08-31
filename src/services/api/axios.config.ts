@@ -5,7 +5,7 @@ import axios, {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { getEnvironment } from '../../config/env'
+import { getActiveApi } from '../../config/env'
 import { getAccessToken, refreshToken } from '../auth/token.service'
 import { TOKEN_ENDPOINT } from '../auth/token.constants'
 import { TokenServiceError } from '../auth/token.types'
@@ -20,7 +20,7 @@ let openApiClient: AxiosInstance | undefined
 function isTokenRequest(url?: string): boolean {
   if (!url) return false
   try {
-    return new URL(url, getEnvironment().apiBaseUrl).pathname.endsWith(TOKEN_ENDPOINT)
+    return new URL(url, getActiveApi().baseUrl).pathname.endsWith(TOKEN_ENDPOINT)
   } catch {
     return url.includes(TOKEN_ENDPOINT)
   }
@@ -56,7 +56,7 @@ async function retryUnauthorized(
 
 export function createAuthenticatedApiClient(): AxiosInstance {
   const client = axios.create({
-    baseURL: getEnvironment().apiBaseUrl,
+    baseURL: getActiveApi().baseUrl,
     timeout: 60_000,
     headers: { Accept: 'application/json' },
   })
@@ -83,15 +83,21 @@ export function createAuthenticatedApiClient(): AxiosInstance {
 }
 
 export function getApiClient(): AxiosInstance {
-  apiClient ??= createAuthenticatedApiClient()
+  const activeApi = getActiveApi()
+  if (apiClient?.defaults.baseURL !== activeApi.baseUrl) {
+    apiClient = createAuthenticatedApiClient()
+  }
   return apiClient
 }
 
 export function getOpenApiClient(): AxiosInstance {
-  openApiClient ??= axios.create({
-    baseURL: getEnvironment().openApiUrl,
-    timeout: 30_000,
-    headers: { Accept: 'application/json' },
-  })
+  const activeApi = getActiveApi()
+  if (openApiClient?.defaults.baseURL !== activeApi.openApiUrl) {
+    openApiClient = axios.create({
+      baseURL: activeApi.openApiUrl,
+      timeout: 30_000,
+      headers: { Accept: 'application/json' },
+    })
+  }
   return openApiClient
 }

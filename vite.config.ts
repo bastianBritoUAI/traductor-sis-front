@@ -8,13 +8,28 @@ const PUBLIC_ENV_PREFIXES = [
   'VITE_AZURE_AD_TENANT_ID',
   'VITE_SIS_TRADUCTOR_BASE_URL',
   'VITE_SIS_TRADUCTOR_OPENAPI_URL',
+  'VITE_API_BASE_URL_REGLAMENTO',
+  'VITE_API_OPENAPI_URL_REGLAMENTO',
 ]
+
+const TOKEN_CREDENTIALS = {
+  traductor: {
+    scope: 'SIS_TRADUCTOR_SCOPE',
+    clientId: 'SIS_TRADUCTOR_CLIENT_ID',
+    clientSecret: 'SIS_TRADUCTOR_CLIENT_SECRET',
+  },
+  reglamento: {
+    scope: 'REGLAMENTOS_SCOPE',
+    clientId: 'REGLAMENTOS_CLIENT_ID',
+    clientSecret: 'REGLAMENTOS_CLIENT_SECRET',
+  },
+} as const
 
 function tokenProxyPlugin(environment: Record<string, string>): Plugin {
   return {
     name: 'token-proxy',
     configureServer(server) {
-      server.middlewares.use('/api/tokenApiTraductor', async (request, response) => {
+      server.middlewares.use('/api/tokenApi', async (request, response) => {
         if (request.method !== 'POST') {
           response.statusCode = 405
           response.setHeader('Allow', 'POST')
@@ -22,10 +37,26 @@ function tokenProxyPlugin(environment: Record<string, string>): Plugin {
           return
         }
 
+        let rawBody = ''
+        for await (const chunk of request) rawBody += String(chunk)
+        let apiId: keyof typeof TOKEN_CREDENTIALS = 'traductor'
+        try {
+          const body = JSON.parse(rawBody) as { apiId?: string }
+          if (body.apiId && body.apiId in TOKEN_CREDENTIALS) {
+            apiId = body.apiId as keyof typeof TOKEN_CREDENTIALS
+          }
+        } catch {
+          response.statusCode = 400
+          response.setHeader('Content-Type', 'application/json')
+          response.end(JSON.stringify({ error: 'Invalid token request.' }))
+          return
+        }
+
+        const credentialNames = TOKEN_CREDENTIALS[apiId]
         const tenantId = environment.AZURE_AD_TENANT_ID || environment.VITE_AZURE_AD_TENANT_ID
-        const scope = environment.SIS_TRADUCTOR_SCOPE
-        const clientId = environment.SIS_TRADUCTOR_CLIENT_ID
-        const clientSecret = environment.SIS_TRADUCTOR_CLIENT_SECRET
+        const scope = environment[credentialNames.scope]
+        const clientId = environment[credentialNames.clientId]
+        const clientSecret = environment[credentialNames.clientSecret]
 
         if (!tenantId || !scope || !clientId || !clientSecret) {
           response.statusCode = 500
@@ -55,7 +86,7 @@ function tokenProxyPlugin(environment: Record<string, string>): Plugin {
           response.setHeader('Cache-Control', 'no-store')
           response.end(body)
         } catch (error) {
-          console.error('Error al obtener el token de Traductor SIS.', error)
+          console.error(`Error al obtener el token de ${apiId}.`, error)
           response.statusCode = 502
           response.setHeader('Content-Type', 'application/json')
           response.end(JSON.stringify({ error: 'Token service is unavailable.' }))

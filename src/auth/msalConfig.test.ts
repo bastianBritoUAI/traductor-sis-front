@@ -8,8 +8,21 @@ describe('MSAL configuration', () => {
       azureAdInstance: 'https://login.microsoftonline.com',
       azureAdClientId: 'spa-client-id',
       azureAdTenantId: 'tenant-id',
-      apiBaseUrl: 'https://api.example.test',
-      openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+      defaultApiId: 'traductor',
+      apis: [
+        {
+          id: 'traductor',
+          name: 'Traductor SIS',
+          baseUrl: 'https://api.example.test',
+          openApiUrl: 'https://docs.example.test/swagger/v1/swagger.json',
+        },
+        {
+          id: 'reglamento',
+          name: 'Reglamento SIS',
+          baseUrl: 'https://reglamento.example.test',
+          openApiUrl: 'https://reglamento-docs.example.test/swagger/v1/swagger.json',
+        },
+      ],
     })
     vi.stubGlobal('window', { location: { origin: 'https://spa.example.test' } })
   })

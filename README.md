@@ -1,7 +1,7 @@
-# Traductor SIS - API Explorer
+# SIS - API Explorer
 
-Explorador dinámico de Traductor SIS con el mismo flujo de autenticación y acceso a APIM utilizado
-por `APP-SIS-Reglamentos-React`.
+Explorador dinámico de las APIs SIS configuradas en el entorno. Incluye Traductor SIS y Reglamento
+SIS, con el mismo flujo de autenticación y acceso a APIM utilizado por `APP-SIS-Reglamentos-React`.
 
 La aplicación maneja dos identidades independientes:
 
@@ -9,14 +9,15 @@ La aplicación maneja dos identidades independientes:
 - Una Azure Function obtiene el token de aplicación para APIM con `client_credentials`.
 
 El navegador nunca envía ni recibe el `client secret`. Solo recibe el access token emitido para
-Traductor SIS y lo conserva en memoria.
+la API seleccionada y lo conserva en memoria.
 
 ## Flujo de ejecución
 
 1. El bootstrap valida las variables públicas e inicializa `PublicClientApplication`.
 2. `MsalProvider` y `AuthGuard` restauran una cuenta en caché o inician `loginRedirect`.
-3. Al autenticar al usuario, se precarga el token de APIM desde `POST /api/tokenApiTraductor`.
-4. La Azure Function usa las credenciales de aplicación almacenadas en el servidor para solicitar
+3. Al autenticar al usuario, se solicita el token de APIM desde `POST /api/tokenApi` indicando la
+   API activa.
+4. La Azure Function usa las credenciales de aplicación de esa API, almacenadas en el servidor, para solicitar
    el token a Microsoft Entra ID.
 5. El interceptor Axios agrega `Authorization: Bearer <token>` a cada llamada funcional hacia APIM.
 6. El token se comparte entre solicitudes concurrentes y se renueva 60 segundos antes de expirar.
@@ -36,6 +37,8 @@ VITE_AZURE_AD_CLIENT_ID=
 VITE_AZURE_AD_TENANT_ID=
 VITE_SIS_TRADUCTOR_BASE_URL=https://apim-sis-002-dev.uai.cl/traductor-sis
 VITE_SIS_TRADUCTOR_OPENAPI_URL=https://app-dev-traductorsis-api-bmf4avaqgyhyf2g0.eastus2-01.azurewebsites.net/swagger/v1/swagger.json
+VITE_API_BASE_URL_REGLAMENTO=https://apim-sis-002-dev.uai.cl/reglamentoapi
+VITE_API_OPENAPI_URL_REGLAMENTO=https://app-dev-sis-serviciosreglamento-avfjejeubea3fkf8.eastus2-01.azurewebsites.net/swagger/v1/swagger.json
 ```
 
 Variables privadas de la Azure Function y del proxy local de Vite:
@@ -45,6 +48,9 @@ AZURE_AD_TENANT_ID=
 SIS_TRADUCTOR_SCOPE=
 SIS_TRADUCTOR_CLIENT_ID=
 SIS_TRADUCTOR_CLIENT_SECRET=
+REGLAMENTOS_SCOPE=api://312446b6-e2d5-406e-8eac-5f83463e30f9/.default
+REGLAMENTOS_CLIENT_ID=2816c029-725f-405d-84d7-8b77ebaed2e0
+REGLAMENTOS_CLIENT_SECRET=
 ```
 
 Las variables privadas no deben usar el prefijo `VITE_`. En Azure Static Web Apps deben configurarse
@@ -59,8 +65,9 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-El middleware de Vite publica localmente `POST /api/tokenApiTraductor` con el mismo contrato que la
-Azure Function desplegada. La aplicación queda disponible en `http://localhost:5173`.
+El middleware de Vite publica localmente `POST /api/tokenApi` con el mismo contrato que la Azure
+Function desplegada. El selector del banner cambia la URL base, el OpenAPI y el token utilizado; la
+aplicación queda disponible en `http://localhost:5173`.
 
 La Function también puede compilarse de forma independiente:
 
@@ -77,7 +84,7 @@ local, excluido de control de versiones.
 
 ```text
 api/
-├── index.ts                         # Function client_credentials para Traductor SIS
+├── index.ts                         # Function client_credentials según la API seleccionada
 ├── host.json
 ├── package.json
 └── tsconfig.json

@@ -19,6 +19,7 @@ interface UiState {
   closeEndpoint: () => void
   setExplorerView: (view: ExplorerView) => void
   toggleComparisonEndpoint: (id: string) => void
+  resetExplorer: () => void
 }
 
 function applyTheme(theme: Theme) {
@@ -55,6 +56,13 @@ export const useUiStore = create<UiState>()(
             ? state.comparisonEndpointIds.filter((endpointId) => endpointId !== id)
             : [...state.comparisonEndpointIds, id],
         })),
+      resetExplorer: () =>
+        set({
+          selectedEndpointId: undefined,
+          comparisonEndpointIds: [],
+          explorerView: 'details',
+          sidebarOpen: false,
+        }),
     }),
     {
       name: 'traductor-sis-ui',
