@@ -7,6 +7,7 @@ interface JsonViewerProps {
   maxHeight?: string
   fillHeight?: boolean
   collapsed?: boolean
+  collapsible?: boolean
   collapsibleNodes?: boolean
   footer?: React.ReactNode
 }
@@ -55,10 +56,12 @@ export function JsonViewer({
   maxHeight = 'max-h-96',
   fillHeight = false,
   collapsed = false,
+  collapsible = false,
   collapsibleNodes = false,
   footer,
 }: JsonViewerProps) {
   const [copied, setCopied] = useState(false)
+  const [collapsedPaths, setCollapsedPaths] = useState<Set<string>>(() => new Set())
   const json = useMemo(() => {
     if (typeof value === 'string') {
       try {
@@ -86,10 +89,29 @@ export function JsonViewer({
   }
 
   const contentHeight = fillHeight ? 'min-h-0 flex-1' : maxHeight
+  const collapsiblePaths = useMemo(
+    () => getJsonContainerPaths(treeValue).filter((path) => path !== '$'),
+    [treeValue],
+  )
+
+  const togglePath = (path: string) => {
+    setCollapsedPaths((current) => {
+      const next = new Set(current)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      return next
+    })
+  }
 
   const content =
     collapsibleNodes && isJsonContainer(treeValue) ? (
-      <JsonTree key={json} value={treeValue} maxHeight={contentHeight} />
+      <JsonTree
+        key={json}
+        value={treeValue}
+        maxHeight={contentHeight}
+        collapsedPaths={collapsedPaths}
+        onToggle={togglePath}
+      />
     ) : (
       <pre className={`${contentHeight} overflow-auto p-4 font-mono text-xs leading-5`}>
         <code>
@@ -143,15 +165,37 @@ export function JsonViewer({
         <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
           {label ?? 'JSON'}
         </span>
-        <button
-          type="button"
-          onClick={() => void copy()}
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-white/10 hover:text-white"
-          aria-label="Copiar JSON"
-        >
-          {copied ? <Check size={13} /> : <Copy size={13} />}
-          {copied ? 'Copiado' : 'Copiar'}
-        </button>
+        <div className="flex items-center gap-1">
+          {collapsible && (
+            <>
+              <button
+                type="button"
+                onClick={() => setCollapsedPaths(new Set(collapsiblePaths))}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-white/10 hover:text-white"
+                aria-label="Colapsar campos JSON"
+              >
+                Colapsar campos
+              </button>
+              <button
+                type="button"
+                onClick={() => setCollapsedPaths(new Set())}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-white/10 hover:text-white"
+                aria-label="Expandir campos JSON"
+              >
+                Expandir campos
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => void copy()}
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate-400 transition hover:bg-white/10 hover:text-white"
+            aria-label="Copiar JSON"
+          >
+            {copied ? <Check size={13} /> : <Copy size={13} />}
+            {copied ? 'Copiado' : 'Copiar'}
+          </button>
+        </div>
       </div>
       {content}
       {footer}
@@ -165,18 +209,29 @@ function isJsonContainer(value: unknown): value is JsonContainer {
   return typeof value === 'object' && value !== null
 }
 
-function JsonTree({ value, maxHeight }: { value: JsonContainer; maxHeight: string }) {
-  const [collapsedPaths, setCollapsedPaths] = useState<Set<string>>(() => new Set())
+function getJsonContainerPaths(value: unknown, path = '$'): string[] {
+  if (!isJsonContainer(value)) return []
 
-  const togglePath = (path: string) => {
-    setCollapsedPaths((current) => {
-      const next = new Set(current)
-      if (next.has(path)) next.delete(path)
-      else next.add(path)
-      return next
-    })
+  const entries = Array.isArray(value) ? value.entries() : Object.entries(value)
+  const paths = [path]
+  for (const [key, child] of entries) {
+    const childPath = Array.isArray(value) ? `${path}[${key}]` : `${path}.${key}`
+    paths.push(...getJsonContainerPaths(child, childPath))
   }
+  return paths
+}
 
+function JsonTree({
+  value,
+  maxHeight,
+  collapsedPaths,
+  onToggle,
+}: {
+  value: JsonContainer
+  maxHeight: string
+  collapsedPaths: Set<string>
+  onToggle: (path: string) => void
+}) {
   return (
     <div
       className={`${maxHeight} overflow-auto p-4 font-mono text-xs leading-5`}
@@ -188,7 +243,7 @@ function JsonTree({ value, maxHeight }: { value: JsonContainer; maxHeight: strin
         depth={0}
         isLast
         collapsedPaths={collapsedPaths}
-        onToggle={togglePath}
+        onToggle={onToggle}
       />
     </div>
   )

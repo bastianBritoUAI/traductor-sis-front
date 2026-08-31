@@ -80,6 +80,7 @@ export function ResponseViewer({
           value={result.data}
           label="Response body"
           maxHeight="max-h-[34rem]"
+          collapsible
           collapsibleNodes
           footer={
             <ExecutionFooter
@@ -128,6 +129,7 @@ export function ExecutionErrorViewer({
         <JsonViewer
           value={{ error: record.error }}
           label="Response body"
+          collapsible
           collapsibleNodes
           footer={
             <ExecutionFooter

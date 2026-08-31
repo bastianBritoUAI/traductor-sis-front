@@ -43,4 +43,26 @@ describe('JsonViewer interactive tree', () => {
     expect(content?.className).toContain('min-h-0')
     expect(content?.className).not.toContain('max-h-96')
   })
+
+  it('collapses and expands all JSON fields without hiding the viewer', () => {
+    const { container } = render(
+      <JsonViewer
+        value={{ profile: { name: 'Ada' }, metadata: { id: 1 } }}
+        collapsible
+        collapsibleNodes
+      />,
+    )
+
+    const collapse = screen.getByRole('button', { name: 'Colapsar campos JSON' })
+    expect(container.textContent).toContain('"name"')
+
+    fireEvent.click(collapse)
+
+    expect(container.textContent).not.toContain('"name"')
+    expect(container.textContent).toContain('"profile"')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir campos JSON' }))
+
+    expect(container.textContent).toContain('"name"')
+  })
 })
