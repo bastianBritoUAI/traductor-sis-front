@@ -48,6 +48,12 @@ describe('token service', () => {
           baseUrl: 'https://reglamento.example.test',
           openApiUrl: 'https://reglamento-docs.example.test/swagger/v1/swagger.json',
         },
+        {
+          id: 'titulacion',
+          name: 'Titulación SIS',
+          baseUrl: 'https://titulacion.example.test',
+          openApiUrl: 'https://titulacion-docs.example.test/swagger/v1/swagger.json',
+        },
       ],
     })
     clearToken()
@@ -87,13 +93,13 @@ describe('token service', () => {
   })
 
   it('requests credentials for the currently selected API', async () => {
-    const post = vi.spyOn(axios, 'post').mockResolvedValue(tokenResponse('reglamento-token'))
-    setActiveApi('reglamento')
+    const post = vi.spyOn(axios, 'post').mockResolvedValue(tokenResponse('titulacion-token'))
+    setActiveApi('titulacion')
 
     await getAccessToken()
 
     expect(post.mock.calls[0]?.[0]).toBe('/api/tokenApi')
-    expect(post.mock.calls[0]?.[1]).toEqual({ apiId: 'reglamento' })
+    expect(post.mock.calls[0]?.[1]).toEqual({ apiId: 'titulacion' })
   })
 
   it('reuses a valid token and renews it inside the 60 second buffer', async () => {

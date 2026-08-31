@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_SIS_TRADUCTOR_OPENAPI_URL: string
   readonly VITE_API_BASE_URL_REGLAMENTO: string
   readonly VITE_API_OPENAPI_URL_REGLAMENTO: string
+  readonly VITE_TITULACION_API_BASE_URL: string
+  readonly VITE_TITULACION_API_OPENAPI_URL: string
 }
 
 interface ImportMeta {

@@ -6,7 +6,7 @@ import {
   type InvocationContext,
 } from '@azure/functions'
 
-type ApiId = 'traductor' | 'reglamento'
+type ApiId = 'traductor' | 'reglamento' | 'titulacion'
 
 interface TokenConfiguration {
   tenantId: string
@@ -25,6 +25,11 @@ const tokenVariables: Record<ApiId, Omit<Record<keyof TokenConfiguration, string
     scope: 'REGLAMENTOS_SCOPE',
     clientId: 'REGLAMENTOS_CLIENT_ID',
     clientSecret: 'REGLAMENTOS_CLIENT_SECRET',
+  },
+  titulacion: {
+    scope: 'TITULACION_API_SCOPE',
+    clientId: 'TITULACION_API_CLIENT_ID',
+    clientSecret: 'TITULACION_API_CLIENT_SECRET',
   },
 }
 
@@ -55,7 +60,7 @@ app.http('tokenApi', {
       const requestWithJson = request as unknown as { json: () => Promise<unknown> }
       const tokenRequest = (await requestWithJson.json()) as { apiId?: unknown }
       const apiId = tokenRequest.apiId
-      if (apiId !== 'traductor' && apiId !== 'reglamento') {
+      if (apiId !== 'traductor' && apiId !== 'reglamento' && apiId !== 'titulacion') {
         return {
           status: 400,
           headers: { 'Cache-Control': 'no-store' },

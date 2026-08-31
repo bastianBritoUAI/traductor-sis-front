@@ -1,7 +1,8 @@
 # SIS - API Explorer
 
-Explorador dinámico de las APIs SIS configuradas en el entorno. Incluye Traductor SIS y Reglamento
-SIS, con el mismo flujo de autenticación y acceso a APIM utilizado por `APP-SIS-Reglamentos-React`.
+Explorador dinámico de las APIs SIS configuradas en el entorno. Incluye Traductor SIS, Reglamento
+SIS y Titulación SIS, con el mismo flujo de autenticación y acceso a APIM utilizado por
+`APP-SIS-Reglamentos-React`.
 
 La aplicación maneja dos identidades independientes:
 
@@ -39,6 +40,8 @@ VITE_SIS_TRADUCTOR_BASE_URL=https://apim-sis-002-dev.uai.cl/traductor-sis
 VITE_SIS_TRADUCTOR_OPENAPI_URL=https://app-dev-traductorsis-api-bmf4avaqgyhyf2g0.eastus2-01.azurewebsites.net/swagger/v1/swagger.json
 VITE_API_BASE_URL_REGLAMENTO=https://apim-sis-002-dev.uai.cl/reglamentoapi
 VITE_API_OPENAPI_URL_REGLAMENTO=https://app-dev-sis-serviciosreglamento-avfjejeubea3fkf8.eastus2-01.azurewebsites.net/swagger/v1/swagger.json
+VITE_TITULACION_API_BASE_URL=https://apim-sis-002-dev.uai.cl/titulacion
+VITE_TITULACION_API_OPENAPI_URL=https://app-dev-sis-titulacion-api.azurewebsites.net/swagger/v1/swagger.json
 ```
 
 Variables privadas de la Azure Function y del proxy local de Vite:
@@ -51,11 +54,14 @@ SIS_TRADUCTOR_CLIENT_SECRET=
 REGLAMENTOS_SCOPE=api://312446b6-e2d5-406e-8eac-5f83463e30f9/.default
 REGLAMENTOS_CLIENT_ID=2816c029-725f-405d-84d7-8b77ebaed2e0
 REGLAMENTOS_CLIENT_SECRET=
+TITULACION_API_SCOPE=api://312446b6-e2d5-406e-8eac-5f83463e30f9/.default
+TITULACION_API_CLIENT_ID=2816c029-725f-405d-84d7-8b77ebaed2e0
+TITULACION_API_CLIENT_SECRET=
 ```
 
-Las variables privadas no deben usar el prefijo `VITE_`. En Azure Static Web Apps deben configurarse
-como application settings de la API administrada. El archivo `.env.example` contiene el contrato
-completo sin valores sensibles.
+Las variables privadas no deben usar el prefijo `VITE_`, incluidos scope, client ID y client secret de
+Titulación. En Azure Static Web Apps deben configurarse como application settings de la API
+administrada. El archivo `.env.example` contiene el contrato completo sin valores sensibles.
 
 ## Desarrollo local
 

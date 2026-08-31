@@ -11,10 +11,12 @@ const environmentSchema = z.object({
   VITE_SIS_TRADUCTOR_OPENAPI_URL: requiredUrl,
   VITE_API_BASE_URL_REGLAMENTO: requiredUrl,
   VITE_API_OPENAPI_URL_REGLAMENTO: requiredUrl,
+  VITE_TITULACION_API_BASE_URL: requiredUrl,
+  VITE_TITULACION_API_OPENAPI_URL: requiredUrl,
 })
 
 export interface ApiConfiguration {
-  id: 'traductor' | 'reglamento'
+  id: 'traductor' | 'reglamento' | 'titulacion'
   name: string
   baseUrl: string
   openApiUrl: string
@@ -67,6 +69,12 @@ export function validateEnvironment(source: EnvironmentSource): EnvironmentValid
           name: 'Reglamento SIS',
           baseUrl: result.data.VITE_API_BASE_URL_REGLAMENTO.replace(/\/$/, ''),
           openApiUrl: result.data.VITE_API_OPENAPI_URL_REGLAMENTO,
+        },
+        {
+          id: 'titulacion',
+          name: 'Titulación SIS',
+          baseUrl: result.data.VITE_TITULACION_API_BASE_URL.replace(/\/$/, ''),
+          openApiUrl: result.data.VITE_TITULACION_API_OPENAPI_URL,
         },
       ],
     },

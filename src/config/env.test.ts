@@ -13,6 +13,9 @@ describe('environment configuration', () => {
         VITE_API_BASE_URL_REGLAMENTO: 'https://reglamento.example.test/',
         VITE_API_OPENAPI_URL_REGLAMENTO:
           'https://reglamento-docs.example.test/swagger/v1/swagger.json',
+        VITE_TITULACION_API_BASE_URL: 'https://titulacion.example.test/',
+        VITE_TITULACION_API_OPENAPI_URL:
+          'https://titulacion-docs.example.test/swagger/v1/swagger.json',
       }),
     ).toEqual({
       success: true,
@@ -34,6 +37,12 @@ describe('environment configuration', () => {
             baseUrl: 'https://reglamento.example.test',
             openApiUrl: 'https://reglamento-docs.example.test/swagger/v1/swagger.json',
           },
+          {
+            id: 'titulacion',
+            name: 'Titulación SIS',
+            baseUrl: 'https://titulacion.example.test',
+            openApiUrl: 'https://titulacion-docs.example.test/swagger/v1/swagger.json',
+          },
         ],
       },
     })
@@ -49,6 +58,8 @@ describe('environment configuration', () => {
         VITE_SIS_TRADUCTOR_OPENAPI_URL: 'not-a-url',
         VITE_API_BASE_URL_REGLAMENTO: 'not-a-url',
         VITE_API_OPENAPI_URL_REGLAMENTO: 'not-a-url',
+        VITE_TITULACION_API_BASE_URL: 'not-a-url',
+        VITE_TITULACION_API_OPENAPI_URL: 'not-a-url',
       }).success,
     ).toBe(false)
   })

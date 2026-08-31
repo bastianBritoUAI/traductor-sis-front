@@ -44,6 +44,12 @@ describe('authenticated Axios client', () => {
           baseUrl: 'https://reglamento.example.test',
           openApiUrl: 'https://reglamento-docs.example.test/swagger/v1/swagger.json',
         },
+        {
+          id: 'titulacion',
+          name: 'Titulación SIS',
+          baseUrl: 'https://titulacion.example.test',
+          openApiUrl: 'https://titulacion-docs.example.test/swagger/v1/swagger.json',
+        },
       ],
     })
     clearToken()
@@ -97,13 +103,13 @@ describe('authenticated Axios client', () => {
   })
 
   it('uses the selected API for both clients', () => {
-    setActiveApi('reglamento')
+    setActiveApi('titulacion')
 
     expect(getApiClient().getUri({ url: '/api/reglamentos' })).toBe(
-      'https://reglamento.example.test/api/reglamentos',
+      'https://titulacion.example.test/api/reglamentos',
     )
     expect(getOpenApiClient().getUri({ url: '' })).toBe(
-      'https://reglamento-docs.example.test/swagger/v1/swagger.json',
+      'https://titulacion-docs.example.test/swagger/v1/swagger.json',
     )
   })
 
