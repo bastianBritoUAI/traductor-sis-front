@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import type { OpenAPIV3 } from 'openapi-types'
 import { JsonViewer } from '../../../components/JsonViewer'
 import { MethodBadge } from '../../../components/MethodBadge'
@@ -15,9 +15,10 @@ import { RequestBuilder } from './RequestBuilder'
 interface EndpointDetailsProps {
   endpoint: SwaggerEndpoint
   document: OpenAPIV3.Document
+  onClose: () => void
 }
 
-export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
+export function EndpointDetails({ endpoint, document, onClose }: EndpointDetailsProps) {
   const bodyFields = endpoint.requestBody
     ? getBodyFields(endpoint.requestBody.schema, document)
     : []
@@ -30,7 +31,7 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
             <MethodBadge method={endpoint.method} />
             <div className="min-w-0">
               <div className="flex items-start gap-2">
-                <h1 className="min-w-0 break-all font-mono text-base font-bold text-slate-900 sm:text-lg dark:text-white">
+                <h1 className="min-w-0 font-mono text-base font-bold break-all text-slate-900 sm:text-lg dark:text-white">
                   {endpoint.path}
                 </h1>
                 {endpoint.deprecated && (
@@ -43,6 +44,16 @@ export function EndpointDetails({ endpoint, document }: EndpointDetailsProps) {
                 {plainText(endpoint.summary) || 'Sin resumen adicional.'}
               </p>
             </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white"
+              aria-label="Cerrar detalle del endpoint"
+              title="Cerrar detalle"
+            >
+              <span className="hidden text-xs font-semibold sm:inline">Cerrar</span>
+              <X size={17} />
+            </button>
           </div>
         </header>
         <details className="group/summary overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]">

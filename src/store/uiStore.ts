@@ -16,6 +16,7 @@ interface UiState {
   setSidebarOpen: (open: boolean) => void
   toggleSidebarCollapsed: () => void
   selectEndpoint: (id: string) => void
+  closeEndpoint: () => void
   setExplorerView: (view: ExplorerView) => void
   toggleComparisonEndpoint: (id: string) => void
 }
@@ -46,6 +47,7 @@ export const useUiStore = create<UiState>()(
       toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       selectEndpoint: (selectedEndpointId) =>
         set({ selectedEndpointId, explorerView: 'details', sidebarOpen: false }),
+      closeEndpoint: () => set({ selectedEndpointId: undefined, explorerView: 'details' }),
       setExplorerView: (explorerView) => set({ explorerView, sidebarOpen: false }),
       toggleComparisonEndpoint: (id) =>
         set((state) => ({
@@ -56,19 +58,20 @@ export const useUiStore = create<UiState>()(
     }),
     {
       name: 'traductor-sis-ui',
-      partialize: ({
+      partialize: ({ theme, comparisonEndpointIds, sidebarCollapsed }) => ({
         theme,
-        selectedEndpointId,
-        explorerView,
-        comparisonEndpointIds,
-        sidebarCollapsed,
-      }) => ({
-        theme,
-        selectedEndpointId,
-        explorerView,
         comparisonEndpointIds,
         sidebarCollapsed,
       }),
+      version: 1,
+      migrate: (persistedState) => {
+        const state = persistedState as Partial<UiState>
+        return {
+          theme: state.theme ?? 'dark',
+          comparisonEndpointIds: state.comparisonEndpointIds ?? [],
+          sidebarCollapsed: state.sidebarCollapsed ?? false,
+        }
+      },
       onRehydrateStorage: () => (state) => applyTheme(state?.theme ?? 'dark'),
     },
   ),

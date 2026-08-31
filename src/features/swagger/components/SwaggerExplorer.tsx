@@ -1,17 +1,19 @@
 import { AlertTriangle, Columns3, FileText, RefreshCw } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useOpenApi } from '../../../hooks/useOpenApi'
 import { useUiStore } from '../../../store/uiStore'
 import type { SwaggerEndpoint } from '../../../types/swagger'
 import { getRequestErrorMessage } from '../../../utils/httpErrors'
 import { EndpointComparator } from './EndpointComparator'
 import { EndpointDetails } from './EndpointDetails'
+import { EndpointList } from './EndpointList'
 import { SidebarSwagger } from './SidebarSwagger'
 
 export function SwaggerExplorer() {
   const { data, isLoading, isError, error, refetch, isFetching } = useOpenApi()
   const selectedEndpointId = useUiStore((state) => state.selectedEndpointId)
   const selectEndpoint = useUiStore((state) => state.selectEndpoint)
+  const closeEndpoint = useUiStore((state) => state.closeEndpoint)
   const explorerView = useUiStore((state) => state.explorerView)
   const setExplorerView = useUiStore((state) => state.setExplorerView)
   const comparisonEndpointIds = useUiStore((state) => state.comparisonEndpointIds)
@@ -29,10 +31,6 @@ export function SwaggerExplorer() {
         .filter((endpoint): endpoint is SwaggerEndpoint => Boolean(endpoint)),
     [comparisonEndpointIds, data?.endpoints],
   )
-
-  useEffect(() => {
-    if (data?.endpoints.length && !selectedEndpoint) selectEndpoint(data.endpoints[0]!.id)
-  }, [data?.endpoints, selectEndpoint, selectedEndpoint])
 
   if (isLoading) return <ExplorerSkeleton />
 
@@ -127,11 +125,15 @@ export function SwaggerExplorer() {
               key={selectedEndpoint.id}
               endpoint={selectedEndpoint}
               document={data.document}
+              onClose={closeEndpoint}
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-slate-500">
-              Selecciona un endpoint para ver su documentación.
-            </div>
+            <EndpointList
+              endpoints={data.endpoints}
+              apiTitle={data.document.info.title}
+              apiVersion={data.document.info.version}
+              onSelect={selectEndpoint}
+            />
           )}
         </div>
         <div className={explorerView === 'compare' ? 'block' : 'hidden'}>
