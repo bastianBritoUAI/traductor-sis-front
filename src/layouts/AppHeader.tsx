@@ -22,7 +22,7 @@ export function AppHeader() {
   const activeApi = getActiveApi()
   const baseUrl = activeApi.baseUrl
   useEffect(() => {
-    document.title = `${activeApi.name} · API Explorer`
+    document.title = `${activeApi.name} - API Explorer`
   }, [activeApi.name])
   const swaggerState: ConnectionState = swagger.isLoading
     ? 'checking'
