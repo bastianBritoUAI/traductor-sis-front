@@ -1,5 +1,5 @@
-import { CheckCircle2, Copy, WifiOff, XCircle } from 'lucide-react'
-import { useState } from 'react'
+import { CheckCircle2, Copy, Download, WifiOff, XCircle } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { JsonViewer } from '../../../components/JsonViewer'
 import type { EndpointExecutionRecord, EndpointExecutionResult } from '../../../types/swagger'
 import { getHttpStatusMessage, extractApiErrorMessage } from '../../../utils/httpErrors'
@@ -20,6 +20,16 @@ export function ResponseViewer({
 }) {
   const [copied, setCopied] = useState(false)
   const successful = result.status >= 200 && result.status < 300
+  const downloadUrl = useMemo(
+    () => (result.download ? URL.createObjectURL(result.download.blob) : undefined),
+    [result.download],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl)
+    }
+  }, [downloadUrl])
 
   const copyResponse = async () => {
     await navigator.clipboard.writeText(JSON.stringify(result.data, null, 2) ?? '')
@@ -45,13 +55,23 @@ export function ResponseViewer({
             <p className="text-xs text-slate-500">Respuesta recibida desde la API</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => void copyResponse()}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
-        >
-          <Copy size={14} /> {copied ? 'Copiado' : 'Copiar JSON'}
-        </button>
+        {result.download && downloadUrl ? (
+          <a
+            href={downloadUrl}
+            download={result.download.filename}
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-400"
+          >
+            <Download size={14} /> Descargar archivo
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void copyResponse()}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5"
+          >
+            <Copy size={14} /> {copied ? 'Copiado' : 'Copiar JSON'}
+          </button>
+        )}
       </div>
 
       {!successful && (
@@ -76,13 +96,17 @@ export function ResponseViewer({
           <JsonViewer value={result.request} label="Request enviada" collapsed />
           <JsonViewer value={result.headers} label="Headers de respuesta" collapsed />
         </div>
-        <JsonViewer
-          value={result.data}
-          label="Response body"
-          maxHeight="max-h-[34rem]"
-          collapsible
-          collapsibleNodes
-          footer={
+        {result.download ? (
+          <div className="overflow-hidden rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06]">
+            <div className="flex items-center gap-3 px-4 py-4">
+              <Download className="text-emerald-600 dark:text-emerald-300" size={20} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                  {result.download.filename}
+                </p>
+                <p className="text-xs text-slate-500">{result.download.contentType}</p>
+              </div>
+            </div>
             <ExecutionFooter
               status={`${result.status} ${result.statusText}`}
               statusTone={successful ? 'success' : 'danger'}
@@ -90,8 +114,25 @@ export function ResponseViewer({
               method={result.method}
               timestamp={result.timestamp}
             />
-          }
-        />
+          </div>
+        ) : (
+          <JsonViewer
+            value={result.data}
+            label="Response body"
+            maxHeight="max-h-[34rem]"
+            collapsible
+            collapsibleNodes
+            footer={
+              <ExecutionFooter
+                status={`${result.status} ${result.statusText}`}
+                statusTone={successful ? 'success' : 'danger'}
+                durationMs={result.durationMs}
+                method={result.method}
+                timestamp={result.timestamp}
+              />
+            }
+          />
+        )}
       </div>
     </section>
   )

@@ -51,6 +51,11 @@ export interface EndpointExecutionResult {
   request: unknown
   headers: Record<string, string>
   data: unknown
+  download?: {
+    blob: Blob
+    filename: string
+    contentType: string
+  }
 }
 
 export interface EndpointExecutionRecord {
