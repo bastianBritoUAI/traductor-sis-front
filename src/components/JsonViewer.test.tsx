@@ -1,10 +1,29 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 import { JsonViewer } from './JsonViewer'
 
+afterEach(cleanup)
+
 describe('JsonViewer interactive tree', () => {
+  it('allows a resizable response body to be collapsed and expanded', () => {
+    render(
+      <JsonViewer value={{ status: 'ok' }} label="Response body" sectionCollapsible resizable />,
+    )
+
+    const details = screen.getByText('Response body').closest('details')
+
+    expect(details?.open).toBe(true)
+    expect(details?.querySelector('.resize')).toBeTruthy()
+
+    fireEvent.click(details?.querySelector('summary') as HTMLElement)
+    expect(details?.open).toBe(false)
+
+    fireEvent.click(details?.querySelector('summary') as HTMLElement)
+    expect(details?.open).toBe(true)
+  })
+
   it('collapses and expands object and array fields', () => {
     render(
       <JsonViewer

@@ -93,8 +93,18 @@ export function ResponseViewer({
           </code>
         </div>
         <div className={`grid gap-2 ${compact ? '' : 'xl:grid-cols-2'}`}>
-          <JsonViewer value={result.request} label="Request enviada" collapsed />
-          <JsonViewer value={result.headers} label="Headers de respuesta" collapsed />
+          <JsonViewer
+            value={result.request}
+            label="Request enviada"
+            collapsed
+            resizable={compact}
+          />
+          <JsonViewer
+            value={result.headers}
+            label="Headers de respuesta"
+            collapsed
+            resizable={compact}
+          />
         </div>
         {result.download ? (
           <div className="overflow-hidden rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06]">
@@ -120,6 +130,8 @@ export function ResponseViewer({
             value={result.data}
             label="Response body"
             maxHeight="max-h-[34rem]"
+            sectionCollapsible={compact}
+            resizable={compact}
             collapsible
             collapsibleNodes
             footer={
@@ -166,10 +178,12 @@ export function ExecutionErrorViewer({
         {record.error}
       </div>
       <div className={`space-y-2 ${compact ? 'p-4' : 'p-5'}`}>
-        <JsonViewer value={record.request} label="Request enviada" collapsed />
+        <JsonViewer value={record.request} label="Request enviada" collapsed resizable={compact} />
         <JsonViewer
           value={{ error: record.error }}
           label="Response body"
+          sectionCollapsible={compact}
+          resizable={compact}
           collapsible
           collapsibleNodes
           footer={

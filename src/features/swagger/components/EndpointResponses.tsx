@@ -62,8 +62,16 @@ export function EndpointResponses({ endpoint, document, compact = false }: Endpo
                   schema={response.schema}
                   document={document}
                   label="Modelo esperado"
+                  collapsible={compact}
+                  resizable={compact}
                 />
-                <JsonViewer value={response.example} label="Ejemplo JSON" fillHeight />
+                <JsonViewer
+                  value={response.example}
+                  label="Ejemplo JSON"
+                  fillHeight={!compact}
+                  sectionCollapsible={compact}
+                  resizable={compact}
+                />
               </div>
             </details>
           )

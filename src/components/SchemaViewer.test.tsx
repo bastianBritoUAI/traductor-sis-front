@@ -1,11 +1,39 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { OpenAPIV3 } from 'openapi-types'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { SchemaViewer } from './SchemaViewer'
 
+afterEach(cleanup)
+
 describe('SchemaViewer tree', () => {
+  it('allows the model section to be resized, collapsed, and expanded', () => {
+    const schema: OpenAPIV3.SchemaObject = {
+      type: 'object',
+      properties: { id: { type: 'integer' } },
+    }
+
+    render(
+      <SchemaViewer
+        schema={schema}
+        document={{} as OpenAPIV3.Document}
+        label="Modelo esperado"
+        collapsible
+        resizable
+      />,
+    )
+
+    const viewer = screen.getByRole('region', { name: 'Modelo esperado' })
+    expect(viewer.className).toContain('resize')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Colapsar Modelo esperado' }))
+    expect(screen.queryByText('id')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expandir Modelo esperado' }))
+    expect(screen.getByText('id')).toBeTruthy()
+  })
+
   it('shows field metadata inside hierarchical, collapsible nodes', () => {
     const schema: OpenAPIV3.SchemaObject = {
       type: 'object',
@@ -103,9 +131,7 @@ describe('SchemaViewer tree', () => {
     expect(screen.getByText('string').className).toContain('text-emerald-300')
     expect(screen.getByText('integer (int64)').className).toContain('text-blue-300')
     expect(screen.getByText('number (double)').className).toContain('text-blue-300')
-    expect(screen.getByText('string (date-time)').className).toContain(
-      'text-cyan-300',
-    )
+    expect(screen.getByText('string (date-time)').className).toContain('text-cyan-300')
     expect(screen.getByText('boolean').className).toContain('text-orange-300')
   })
 })

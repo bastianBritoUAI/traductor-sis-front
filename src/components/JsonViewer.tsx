@@ -7,6 +7,8 @@ interface JsonViewerProps {
   maxHeight?: string
   fillHeight?: boolean
   collapsed?: boolean
+  sectionCollapsible?: boolean
+  resizable?: boolean
   collapsible?: boolean
   collapsibleNodes?: boolean
   footer?: React.ReactNode
@@ -56,12 +58,15 @@ export function JsonViewer({
   maxHeight = 'max-h-96',
   fillHeight = false,
   collapsed = false,
+  sectionCollapsible = false,
+  resizable = false,
   collapsible = false,
   collapsibleNodes = false,
   footer,
 }: JsonViewerProps) {
   const [copied, setCopied] = useState(false)
   const [collapsedPaths, setCollapsedPaths] = useState<Set<string>>(() => new Set())
+  const [sectionOpen, setSectionOpen] = useState(!collapsed)
   const json = useMemo(() => {
     if (typeof value === 'string') {
       try {
@@ -124,9 +129,13 @@ export function JsonViewer({
       </pre>
     )
 
-  if (collapsed) {
+  if (collapsed || sectionCollapsible) {
     return (
-      <details className="group/json overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10">
+      <details
+        className="group/json overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10"
+        open={sectionOpen}
+        onToggle={(event) => setSectionOpen(event.currentTarget.open)}
+      >
         <summary className="flex list-none items-center justify-between gap-3 px-4 py-2.5 marker:hidden">
           <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
             {label ?? 'JSON'}
@@ -136,7 +145,9 @@ export function JsonViewer({
             <ChevronDown className="transition-transform group-open/json:rotate-180" size={14} />
           </span>
         </summary>
-        <div className="border-t border-white/10">
+        <div
+          className={`border-t border-white/10 ${resizable ? 'min-h-28 max-w-full min-w-[16rem] resize overflow-auto' : ''}`}
+        >
           <div className="flex justify-end border-b border-white/10 px-2 py-1">
             <button
               type="button"
@@ -159,7 +170,7 @@ export function JsonViewer({
     <div
       className={`overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10 ${
         fillHeight ? 'flex h-full min-h-0 flex-col' : ''
-      }`}
+      } ${resizable ? 'min-h-28 max-w-full min-w-[16rem] resize overflow-auto' : ''}`}
     >
       <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-2">
         <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">

@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { Copy, Eraser, KeyRound, LoaderCircle, Play, Send } from 'lucide-react'
+import { ChevronDown, Copy, Eraser, KeyRound, LoaderCircle, Play, Send } from 'lucide-react'
 import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { JsonEditor } from '../../../components/JsonEditor'
@@ -61,6 +61,7 @@ export function RequestBuilder({
   const [body, setBody] = useState(() => buildInitialBody(endpoint))
   const [lastExecution, setLastExecution] = useState(initialExecution)
   const [hasAttempted, setHasAttempted] = useState(false)
+  const [consoleCollapsed, setConsoleCollapsed] = useState(false)
   const pendingExecution = useRef<PendingExecution>(undefined)
 
   const updateExecution = (record?: EndpointExecutionRecord) => {
@@ -184,7 +185,7 @@ export function RequestBuilder({
         className={`overflow-hidden border border-emerald-500/20 bg-gradient-to-b from-emerald-500/[0.04] to-white shadow-sm dark:to-white/[0.02] ${compact ? 'rounded-xl' : 'rounded-2xl'}`}
       >
         <div
-          className={`flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 ${compact ? 'px-4 py-3' : 'px-5 py-4'}`}
+          className={`flex flex-wrap items-center justify-between gap-3 ${consoleCollapsed ? '' : 'border-b border-slate-200 dark:border-white/10'} ${compact ? 'px-4 py-3' : 'px-5 py-4'}`}
         >
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">
@@ -198,6 +199,21 @@ export function RequestBuilder({
                 Los valores se envían directamente a la API
               </p>
             </div>
+            {compact && (
+              <button
+                type="button"
+                onClick={() => setConsoleCollapsed((current) => !current)}
+                className="rounded-lg p-1.5 text-slate-400 transition hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-300"
+                aria-expanded={!consoleCollapsed}
+                aria-label={`${consoleCollapsed ? 'Expandir' : 'Colapsar'} Consola de pruebas`}
+                title={`${consoleCollapsed ? 'Expandir' : 'Colapsar'} consola`}
+              >
+                <ChevronDown
+                  className={`transition-transform ${consoleCollapsed ? '-rotate-90' : ''}`}
+                  size={16}
+                />
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {endpoint.requestBody && (
@@ -234,110 +250,112 @@ export function RequestBuilder({
           </div>
         </div>
 
-        <div className={`space-y-5 ${compact ? 'p-4' : 'p-5'}`}>
-          {endpoint.parameters.length > 0 && (
-            <div className={`grid gap-4 ${compact ? '' : 'md:grid-cols-2'}`}>
-              {endpoint.parameters.map((parameter) => {
-                const key = `${parameter.location}:${parameter.name}`
-                const schema = parameter.schema
-                const schemaType = schema && !isReferenceObject(schema) ? schema.type : undefined
-                const enumOptions =
-                  schema && !isReferenceObject(schema) && Array.isArray(schema.enum)
-                    ? (schema.enum as unknown[]).map((value) => String(value))
-                    : undefined
-                const options =
-                  enumOptions ?? (schemaType === 'boolean' ? ['true', 'false'] : undefined)
-                const invalid = hasAttempted && parameter.required && !parameters[key]?.trim()
-                return (
-                  <label key={key} className="block">
-                    <span
-                      className={`mb-2 flex items-center justify-between text-xs font-medium transition-colors ${
-                        invalid
-                          ? 'text-rose-500 dark:text-rose-400'
-                          : 'text-slate-600 dark:text-slate-300'
-                      }`}
-                    >
-                      <span>
-                        {parameter.name}
-                        {parameter.required && (
-                          <span
-                            className={`ml-1 ${invalid ? 'text-rose-500' : 'text-rose-400/60'}`}
-                          >
-                            *
-                          </span>
-                        )}
-                      </span>
-                      <span className="font-mono text-[10px] text-slate-400">
-                        {parameter.location} · {getSchemaType(parameter.schema)}
-                      </span>
-                    </span>
-                    {options ? (
-                      <select
-                        value={parameters[key] ?? ''}
-                        onChange={(event) =>
-                          setParameters((current) => ({ ...current, [key]: event.target.value }))
-                        }
-                        required={parameter.required}
-                        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none dark:bg-[#0a1421] dark:text-white ${
+        {!consoleCollapsed && (
+          <div className={`space-y-5 ${compact ? 'p-4' : 'p-5'}`}>
+            {endpoint.parameters.length > 0 && (
+              <div className={`grid gap-4 ${compact ? '' : 'md:grid-cols-2'}`}>
+                {endpoint.parameters.map((parameter) => {
+                  const key = `${parameter.location}:${parameter.name}`
+                  const schema = parameter.schema
+                  const schemaType = schema && !isReferenceObject(schema) ? schema.type : undefined
+                  const enumOptions =
+                    schema && !isReferenceObject(schema) && Array.isArray(schema.enum)
+                      ? (schema.enum as unknown[]).map((value) => String(value))
+                      : undefined
+                  const options =
+                    enumOptions ?? (schemaType === 'boolean' ? ['true', 'false'] : undefined)
+                  const invalid = hasAttempted && parameter.required && !parameters[key]?.trim()
+                  return (
+                    <label key={key} className="block">
+                      <span
+                        className={`mb-2 flex items-center justify-between text-xs font-medium transition-colors ${
                           invalid
-                            ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
-                            : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10'
+                            ? 'text-rose-500 dark:text-rose-400'
+                            : 'text-slate-600 dark:text-slate-300'
                         }`}
                       >
-                        <option value="">Seleccionar…</option>
-                        {options.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type={
-                          schemaType === 'integer' || schemaType === 'number'
-                            ? 'number'
-                            : schema && !isReferenceObject(schema) && schema.format === 'date'
-                              ? 'date'
-                              : 'text'
-                        }
-                        value={parameters[key] ?? ''}
-                        onChange={(event) =>
-                          setParameters((current) => ({ ...current, [key]: event.target.value }))
-                        }
-                        required={parameter.required}
-                        placeholder={parameter.description ?? `Valor de ${parameter.name}`}
-                        className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 dark:bg-black/20 dark:text-white ${
-                          invalid
-                            ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
-                            : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10'
-                        }`}
-                      />
-                    )}
-                  </label>
-                )
-              })}
-            </div>
-          )}
+                        <span>
+                          {parameter.name}
+                          {parameter.required && (
+                            <span
+                              className={`ml-1 ${invalid ? 'text-rose-500' : 'text-rose-400/60'}`}
+                            >
+                              *
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-mono text-[10px] text-slate-400">
+                          {parameter.location} · {getSchemaType(parameter.schema)}
+                        </span>
+                      </span>
+                      {options ? (
+                        <select
+                          value={parameters[key] ?? ''}
+                          onChange={(event) =>
+                            setParameters((current) => ({ ...current, [key]: event.target.value }))
+                          }
+                          required={parameter.required}
+                          className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none dark:bg-[#0a1421] dark:text-white ${
+                            invalid
+                              ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
+                              : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10'
+                          }`}
+                        >
+                          <option value="">Seleccionar…</option>
+                          {options.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={
+                            schemaType === 'integer' || schemaType === 'number'
+                              ? 'number'
+                              : schema && !isReferenceObject(schema) && schema.format === 'date'
+                                ? 'date'
+                                : 'text'
+                          }
+                          value={parameters[key] ?? ''}
+                          onChange={(event) =>
+                            setParameters((current) => ({ ...current, [key]: event.target.value }))
+                          }
+                          required={parameter.required}
+                          placeholder={parameter.description ?? `Valor de ${parameter.name}`}
+                          className={`w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 transition outline-none placeholder:text-slate-400 dark:bg-black/20 dark:text-white ${
+                            invalid
+                              ? 'border-rose-400 ring-2 ring-rose-400/20 dark:border-rose-500'
+                              : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10'
+                          }`}
+                        />
+                      )}
+                    </label>
+                  )
+                })}
+              </div>
+            )}
 
-          {endpoint.requestBody && (
-            <div>
-              <JsonEditor
-                value={body}
-                onChange={setBody}
-                label={endpoint.requestBody.contentType}
-              />
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                Request prellenada con el ejemplo definido por el contrato OpenAPI.
+            {endpoint.requestBody && (
+              <div>
+                <JsonEditor
+                  value={body}
+                  onChange={setBody}
+                  label={endpoint.requestBody.contentType}
+                />
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  Request prellenada con el ejemplo definido por el contrato OpenAPI.
+                </p>
+              </div>
+            )}
+
+            {!endpoint.parameters.length && !endpoint.requestBody && (
+              <p className="rounded-xl border border-dashed border-slate-300 py-7 text-center text-sm text-slate-500 dark:border-white/10">
+                Esta operación no requiere datos de entrada. Está lista para ejecutar.
               </p>
-            </div>
-          )}
-
-          {!endpoint.parameters.length && !endpoint.requestBody && (
-            <p className="rounded-xl border border-dashed border-slate-300 py-7 text-center text-sm text-slate-500 dark:border-white/10">
-              Esta operación no requiere datos de entrada. Está lista para ejecutar.
-            </p>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </section>
 
       {lastExecution?.result && <ResponseViewer result={lastExecution.result} compact={compact} />}

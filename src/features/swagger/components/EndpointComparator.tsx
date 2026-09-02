@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { MethodBadge } from '../../../components/MethodBadge'
 import { useUiStore } from '../../../store/uiStore'
 import type { EndpointExecutionRecord, SwaggerEndpoint } from '../../../types/swagger'
+import { plainText } from '../../../utils/openapi'
 import { EndpointResponses } from './EndpointResponses'
+import { methodContainerStyles } from '../methodStyles'
 import { RequestBuilder } from './RequestBuilder'
 
 interface EndpointComparatorProps {
@@ -85,28 +87,36 @@ export function EndpointComparator({ endpoints, document }: EndpointComparatorPr
         <div className="grid grid-cols-1 gap-5 xl:auto-cols-[minmax(28rem,1fr)] xl:grid-flow-col xl:grid-cols-none">
           {endpoints.map((endpoint) => {
             const execution = executions[endpoint.id]
+            const methodStyle = methodContainerStyles[endpoint.method]
+            const endpointDescription =
+              plainText(endpoint.description) || plainText(endpoint.summary) || 'Sin descripción.'
             return (
               <section
                 key={endpoint.id}
-                className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white/70 shadow-sm dark:border-white/10 dark:bg-[#091423]/70"
+                className={`min-w-0 overflow-hidden rounded-2xl border ${methodStyle.expanded}`}
               >
-                <header className="border-b border-slate-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-white/[0.025]">
+                <header
+                  className={`border-b px-4 py-4 ${methodStyle.details} ${methodStyle.expandedHeader}`}
+                >
                   <div className="flex items-start gap-3">
-                    <MethodBadge method={endpoint.method} />
+                    <MethodBadge method={endpoint.method} strong />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start gap-2">
-                        <h2 className="line-clamp-2 min-w-0 flex-1 text-sm font-bold text-slate-900 dark:text-white">
-                          {endpoint.summary}
-                        </h2>
+                        <code className="min-w-0 flex-1 truncate font-mono text-sm font-bold text-slate-900 dark:text-white">
+                          {endpoint.path}
+                        </code>
                         {endpoint.deprecated && (
                           <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
                             Deprecado
                           </span>
                         )}
                       </div>
-                      <code className="mt-1 block truncate text-[11px] text-slate-500">
-                        {endpoint.path}
-                      </code>
+                      <p
+                        className="mt-1 truncate text-[11px] text-slate-600 dark:text-slate-400"
+                        title={endpointDescription}
+                      >
+                        {endpointDescription}
+                      </p>
                     </div>
                     <button
                       type="button"

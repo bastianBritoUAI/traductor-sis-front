@@ -7,6 +7,8 @@ export interface SchemaViewerProps {
   schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
   document: OpenAPIV3.Document
   label?: string
+  collapsible?: boolean
+  resizable?: boolean
 }
 
 const TYPE_STYLES: Record<DataTypeCategory, string> = {
@@ -343,18 +345,46 @@ function PrimitiveSchema({ schema }: { schema: OpenAPIV3.SchemaObject }) {
   )
 }
 
-export function SchemaViewer({ schema, document, label }: SchemaViewerProps) {
+export function SchemaViewer({
+  schema,
+  document,
+  label,
+  collapsible = false,
+  resizable = false,
+}: SchemaViewerProps) {
   const title = label ?? 'Modelo esperado'
+  const [sectionCollapsed, setSectionCollapsed] = useState(false)
+  const frameClassName = `rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10 ${
+    resizable && !sectionCollapsed
+      ? 'min-h-28 min-w-[16rem] max-w-full resize overflow-auto'
+      : 'overflow-hidden'
+  } ${sectionCollapsed ? '!h-auto !min-h-0 !w-auto' : ''}`
 
   if (!schema) {
     return (
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10">
-        <header className="border-b border-white/10 px-4 py-2">
+      <section aria-label={title} className={frameClassName}>
+        <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2">
           <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
             {title}
           </span>
+          {collapsible && (
+            <button
+              type="button"
+              onClick={() => setSectionCollapsed((current) => !current)}
+              className="rounded-md p-1 text-slate-500 transition hover:bg-white/10 hover:text-white"
+              aria-expanded={!sectionCollapsed}
+              aria-label={`${sectionCollapsed ? 'Expandir' : 'Colapsar'} ${title}`}
+            >
+              <ChevronDown
+                className={`transition-transform ${sectionCollapsed ? '-rotate-90' : ''}`}
+                size={14}
+              />
+            </button>
+          )}
         </header>
-        <p className="px-4 py-4 text-xs text-slate-500 italic">Sin modelo definido</p>
+        {!sectionCollapsed && (
+          <p className="px-4 py-4 text-xs text-slate-500 italic">Sin modelo definido</p>
+        )}
       </section>
     )
   }
@@ -369,10 +399,7 @@ export function SchemaViewer({ schema, document, label }: SchemaViewerProps) {
   const isPrimitive = !hasChildren && rootSchema && rootSchema.type !== 'object'
 
   return (
-    <section
-      aria-label={title}
-      className="overflow-hidden rounded-xl border border-slate-200 bg-slate-950 shadow-inner dark:border-white/10"
-    >
+    <section aria-label={title} className={frameClassName}>
       <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2">
         <span className="text-[11px] font-semibold tracking-[0.14em] text-slate-400 uppercase">
           {title}
@@ -388,10 +415,24 @@ export function SchemaViewer({ schema, document, label }: SchemaViewerProps) {
               {resolved.modelName}
             </span>
           )}
+          {collapsible && (
+            <button
+              type="button"
+              onClick={() => setSectionCollapsed((current) => !current)}
+              className="rounded-md p-1 text-slate-500 transition hover:bg-white/10 hover:text-white"
+              aria-expanded={!sectionCollapsed}
+              aria-label={`${sectionCollapsed ? 'Expandir' : 'Colapsar'} ${title}`}
+            >
+              <ChevronDown
+                className={`transition-transform ${sectionCollapsed ? '-rotate-90' : ''}`}
+                size={14}
+              />
+            </button>
+          )}
         </div>
       </header>
 
-      {hasChildren ? (
+      {!sectionCollapsed && hasChildren ? (
         <div role="tree" aria-label={`Estructura de ${title}`} className="overflow-x-auto p-3">
           {isArray && itemSchemaOrRef ? (
             <SchemaNodes schemaOrRef={itemSchemaOrRef} document={document} depth={0} />
@@ -399,11 +440,11 @@ export function SchemaViewer({ schema, document, label }: SchemaViewerProps) {
             <SchemaNodes schemaOrRef={schema} document={document} depth={0} />
           )}
         </div>
-      ) : isPrimitive && rootSchema ? (
+      ) : !sectionCollapsed && isPrimitive && rootSchema ? (
         <PrimitiveSchema schema={rootSchema} />
-      ) : (
+      ) : !sectionCollapsed ? (
         <p className="px-4 py-4 text-xs text-slate-500 italic">Sin propiedades definidas</p>
-      )}
+      ) : null}
     </section>
   )
 }
