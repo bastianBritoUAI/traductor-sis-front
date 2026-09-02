@@ -76,6 +76,14 @@ describe('EndpointList', () => {
 
     expect(screen.getByTestId('details-users-list')).toBeTruthy()
     expect(screen.getByTestId('details-users-create')).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Contraer Listar usuarios' }).closest('[id^="endpoint-"]')
+        ?.className,
+    ).toContain('border-emerald-400/70')
+    expect(
+      screen.getByRole('button', { name: 'Contraer Listar usuarios' }).closest('[id^="endpoint-"]')
+        ?.className,
+    ).toContain('bg-emerald-50/80')
   })
 
   it('selects an endpoint for comparison without expanding its details', () => {
@@ -87,5 +95,21 @@ describe('EndpointList', () => {
     expect(
       screen.getByRole('button', { name: 'Quitar Listar usuarios del comparador' }),
     ).toBeTruthy()
+  })
+
+  it('filters endpoints by their searchable contract data', () => {
+    render(<EndpointListHarness />)
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Buscar endpoints' }), {
+      target: { value: 'post crear' },
+    })
+
+    expect(screen.queryByRole('button', { name: 'Expandir Listar usuarios' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Expandir Crear usuario' })).toBeTruthy()
+    expect(screen.getByText('1 coincidencia')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar búsqueda de endpoints' }))
+
+    expect(screen.getByRole('button', { name: 'Expandir Listar usuarios' })).toBeTruthy()
   })
 })

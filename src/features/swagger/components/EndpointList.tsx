@@ -1,6 +1,6 @@
-import { Check, ChevronRight, Folder, List, Plus } from 'lucide-react'
+import { Check, ChevronRight, Folder, List, Plus, Search, X } from 'lucide-react'
 import type { OpenAPIV3 } from 'openapi-types'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { MethodBadge } from '../../../components/MethodBadge'
 import type { SwaggerEndpoint } from '../../../types/swagger'
 import { getEndpointElementId } from '../../../utils/endpointDom'
@@ -18,6 +18,13 @@ interface EndpointListProps {
   onToggleComparison: (endpointId: string) => void
 }
 
+function normalizeSearchValue(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('es')
+}
+
 export function EndpointList({
   endpoints,
   document,
@@ -28,21 +35,44 @@ export function EndpointList({
   onToggleDetails,
   onToggleComparison,
 }: EndpointListProps) {
+  const [search, setSearch] = useState('')
+  const filteredEndpoints = useMemo(() => {
+    const term = normalizeSearchValue(search.trim())
+    if (!term) return endpoints
+
+    const terms = term.split(/\s+/)
+    return endpoints.filter((endpoint) => {
+      const searchable = normalizeSearchValue(
+        [
+          endpoint.method,
+          endpoint.path,
+          endpoint.summary,
+          endpoint.description,
+          endpoint.operationId,
+          ...endpoint.tags,
+        ]
+          .filter(Boolean)
+          .map((value) => plainText(value))
+          .join(' '),
+      )
+      return terms.every((searchTerm) => searchable.includes(searchTerm))
+    })
+  }, [endpoints, search])
   const endpointsByController = useMemo(
     () =>
       Object.entries(
-        endpoints.reduce<Record<string, SwaggerEndpoint[]>>((groups, endpoint) => {
+        filteredEndpoints.reduce<Record<string, SwaggerEndpoint[]>>((groups, endpoint) => {
           const controller = endpoint.tags[0] ?? 'General'
           groups[controller] = [...(groups[controller] ?? []), endpoint]
           return groups
         }, {}),
       ),
-    [endpoints],
+    [filteredEndpoints],
   )
 
   return (
     <section className="w-full px-3 py-6 sm:px-4 lg:px-5 lg:py-8">
-      <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
             <List size={18} />
@@ -60,7 +90,43 @@ export function EndpointList({
         </p>
       </header>
 
-      {endpoints.length ? (
+      {endpoints.length > 0 && (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <div className="relative min-w-0 flex-1 sm:max-w-xl">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
+              size={16}
+            />
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por nombre, ruta, método o controlador…"
+              aria-label="Buscar endpoints"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pr-10 pl-9 text-sm text-slate-900 shadow-sm transition outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:focus:border-emerald-500/60"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
+                aria-label="Limpiar búsqueda de endpoints"
+                title="Limpiar búsqueda"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          {search.trim() && (
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              {filteredEndpoints.length}{' '}
+              {filteredEndpoints.length === 1 ? 'coincidencia' : 'coincidencias'}
+            </span>
+          )}
+        </div>
+      )}
+
+      {endpointsByController.length ? (
         <div className="space-y-6">
           {endpointsByController.map(([controller, controllerEndpoints]) => (
             <section key={controller} aria-labelledby={`controller-${controller}`}>
@@ -74,7 +140,7 @@ export function EndpointList({
                   {controllerEndpoints.length === 1 ? 'endpoint' : 'endpoints'}
                 </span>
               </div>
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]">
+              <div className="space-y-2">
                 {controllerEndpoints.map((endpoint) => {
                   const expanded = expandedEndpointIds.includes(endpoint.id)
                   const compared = comparisonEndpointIds.includes(endpoint.id)
@@ -85,7 +151,7 @@ export function EndpointList({
                     <div
                       id={endpointElementId}
                       key={endpoint.id}
-                      className="scroll-mt-16 border-b border-slate-200 last:border-b-0 dark:border-white/10"
+                      className={`scroll-mt-16 overflow-hidden rounded-xl border transition-colors ${expanded ? 'border-emerald-400/70 bg-emerald-50/80 shadow-sm shadow-emerald-500/10 dark:border-emerald-400/40 dark:bg-emerald-500/[0.08]' : 'border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]'}`}
                     >
                       <div
                         className={`group flex items-center gap-2 transition ${expanded ? 'bg-emerald-500/[0.06]' : 'hover:bg-slate-50 dark:hover:bg-white/[0.06]'}`}
@@ -138,7 +204,7 @@ export function EndpointList({
                       {expanded && (
                         <div
                           id={detailsId}
-                          className="border-t border-slate-200 bg-slate-50/70 dark:border-white/10 dark:bg-black/10"
+                          className="border-t border-emerald-500/25 bg-emerald-50/40 dark:border-emerald-400/20 dark:bg-emerald-950/10"
                         >
                           <EndpointDetails
                             endpoint={endpoint}
@@ -154,6 +220,23 @@ export function EndpointList({
               </div>
             </section>
           ))}
+        </div>
+      ) : endpoints.length ? (
+        <div className="rounded-xl border border-dashed border-slate-300 px-5 py-12 text-center dark:border-white/15">
+          <Search className="mx-auto text-slate-300 dark:text-slate-600" size={28} />
+          <p className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            No encontramos endpoints
+          </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Prueba con otro nombre, ruta, método o controlador.
+          </p>
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            className="mt-4 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+          >
+            Limpiar búsqueda
+          </button>
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-slate-300 px-5 py-12 text-center text-sm text-slate-500 dark:border-white/15">
