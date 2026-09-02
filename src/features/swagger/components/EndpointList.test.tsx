@@ -19,6 +19,7 @@ const endpoints: SwaggerEndpoint[] = [
     method: 'get',
     path: '/users',
     summary: 'Listar usuarios',
+    description: 'Obtiene los usuarios disponibles',
     tags: ['Usuarios'],
     deprecated: false,
     parameters: [],
@@ -29,6 +30,7 @@ const endpoints: SwaggerEndpoint[] = [
     method: 'post',
     path: '/users',
     summary: 'Crear usuario',
+    description: 'Registra un nuevo usuario',
     tags: ['Usuarios'],
     deprecated: false,
     parameters: [],
@@ -68,6 +70,20 @@ function EndpointListHarness() {
 }
 
 describe('EndpointList', () => {
+  it('enlarges controller headings and shows URL before endpoint description', () => {
+    render(<EndpointListHarness />)
+
+    const controller = screen.getByRole('heading', { name: 'Usuarios' })
+    const endpoint = screen.getByRole('button', { name: 'Expandir Listar usuarios' })
+    const endpointText = endpoint.textContent ?? ''
+
+    expect(controller.className).toContain('text-base')
+    expect(endpoint.querySelector('code')?.textContent).toBe('/users')
+    expect(endpointText.indexOf('/users')).toBeLessThan(
+      endpointText.indexOf('Obtiene los usuarios disponibles'),
+    )
+  })
+
   it('keeps the endpoint search visible while the main view scrolls', () => {
     render(<EndpointListHarness />)
 

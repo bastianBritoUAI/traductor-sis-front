@@ -215,15 +215,15 @@ export function EndpointList({
       )}
 
       {endpointsByController.length ? (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {endpointsByController.map(([controller, controllerEndpoints]) => (
             <section key={controller} aria-labelledby={`controller-${controller}`}>
-              <div className="mb-2 flex items-center gap-2 px-1 text-slate-600 dark:text-slate-300">
-                <Folder className="text-emerald-600 dark:text-emerald-400" size={16} />
-                <h2 id={`controller-${controller}`} className="text-sm font-bold">
+              <div className="mb-3 flex items-center gap-2.5 px-1 text-slate-700 dark:text-slate-200">
+                <Folder className="text-emerald-600 dark:text-emerald-400" size={20} />
+                <h2 id={`controller-${controller}`} className="text-base font-bold">
                   {controller}
                 </h2>
-                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-white/10 dark:text-slate-400">
+                <span className="rounded-full bg-slate-200 px-2.5 py-1 text-[11px] font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
                   {controllerEndpoints.length}{' '}
                   {controllerEndpoints.length === 1 ? 'endpoint' : 'endpoints'}
                 </span>
@@ -233,6 +233,10 @@ export function EndpointList({
                   const expanded = expandedEndpointIds.includes(endpoint.id)
                   const compared = comparisonEndpointIds.includes(endpoint.id)
                   const methodStyle = methodContainerStyles[endpoint.method]
+                  const endpointDescription =
+                    plainText(endpoint.description) ||
+                    plainText(endpoint.summary) ||
+                    'Sin descripción.'
                   const endpointElementId = getEndpointElementId(endpoint.id)
                   const detailsId = `${endpointElementId}-details`
 
@@ -256,18 +260,21 @@ export function EndpointList({
                           <MethodBadge method={endpoint.method} strong />
                           <span className="min-w-0 flex-1">
                             <span className="flex items-center gap-2">
-                              <span className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
-                                {plainText(endpoint.summary) || endpoint.path}
-                              </span>
+                              <code className="truncate font-mono text-sm font-bold text-slate-900 dark:text-white">
+                                {endpoint.path}
+                              </code>
                               {endpoint.deprecated && (
                                 <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
                                   Deprecado
                                 </span>
                               )}
                             </span>
-                            <code className="mt-1 block truncate text-xs text-slate-500 dark:text-slate-400">
-                              {endpoint.path}
-                            </code>
+                            <span
+                              className="mt-1 block truncate text-xs text-slate-600 dark:text-slate-400"
+                              title={endpointDescription}
+                            >
+                              {endpointDescription}
+                            </span>
                           </span>
                           <ChevronRight
                             className={`shrink-0 transition-transform ${methodStyle.indicator} ${expanded ? 'rotate-90' : ''}`}
