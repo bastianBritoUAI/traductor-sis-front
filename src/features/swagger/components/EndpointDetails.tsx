@@ -17,46 +17,60 @@ interface EndpointDetailsProps {
   endpoint: SwaggerEndpoint
   document: OpenAPIV3.Document
   onClose: () => void
+  embedded?: boolean
 }
 
-export function EndpointDetails({ endpoint, document, onClose }: EndpointDetailsProps) {
+export function EndpointDetails({
+  endpoint,
+  document,
+  onClose,
+  embedded = false,
+}: EndpointDetailsProps) {
   const bodyFields = endpoint.requestBody
     ? getBodyFields(endpoint.requestBody.schema, document)
     : []
 
   return (
-    <article className="mx-auto w-full max-w-[1120px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
-      <div className="mb-8">
-        <header className="mb-5 rounded-lg border border-slate-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-white/[0.025]">
-          <div className="flex items-start gap-3">
-            <MethodBadge method={endpoint.method} />
-            <div className="min-w-0">
-              <div className="flex items-start gap-2">
-                <h1 className="min-w-0 font-mono text-base font-bold break-all text-slate-900 sm:text-lg dark:text-white">
-                  {endpoint.path}
-                </h1>
-                {endpoint.deprecated && (
-                  <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
-                    Deprecado
-                  </span>
-                )}
+    <article
+      className={
+        embedded
+          ? 'w-full px-3 py-5 sm:px-4 lg:px-5'
+          : 'mx-auto w-full max-w-[1120px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10'
+      }
+    >
+      <div className={embedded ? 'mb-6' : 'mb-8'}>
+        {!embedded && (
+          <header className="mb-5 rounded-lg border border-slate-200 bg-white px-4 py-4 dark:border-white/10 dark:bg-white/[0.025]">
+            <div className="flex items-start gap-3">
+              <MethodBadge method={endpoint.method} />
+              <div className="min-w-0">
+                <div className="flex items-start gap-2">
+                  <h1 className="min-w-0 font-mono text-base font-bold break-all text-slate-900 sm:text-lg dark:text-white">
+                    {endpoint.path}
+                  </h1>
+                  {endpoint.deprecated && (
+                    <span className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase dark:text-amber-300">
+                      Deprecado
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                  {plainText(endpoint.summary) || 'Sin resumen adicional.'}
+                </p>
               </div>
-              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                {plainText(endpoint.summary) || 'Sin resumen adicional.'}
-              </p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white"
+                aria-label="Cerrar detalle del endpoint"
+                title="Cerrar detalle"
+              >
+                <span className="hidden text-xs font-semibold sm:inline">Cerrar</span>
+                <X size={17} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white"
-              aria-label="Cerrar detalle del endpoint"
-              title="Cerrar detalle"
-            >
-              <span className="hidden text-xs font-semibold sm:inline">Cerrar</span>
-              <X size={17} />
-            </button>
-          </div>
-        </header>
+          </header>
+        )}
         <details className="group/summary overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:hidden">
             <span className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">

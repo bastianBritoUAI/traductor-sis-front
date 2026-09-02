@@ -8,15 +8,15 @@ interface UiState {
   theme: Theme
   sidebarOpen: boolean
   sidebarCollapsed: boolean
-  selectedEndpointId?: string
+  expandedEndpointIds: string[]
   explorerView: ExplorerView
   comparisonEndpointIds: string[]
   setTheme: (theme: Theme) => void
   toggleTheme: () => void
   setSidebarOpen: (open: boolean) => void
   toggleSidebarCollapsed: () => void
-  selectEndpoint: (id: string) => void
-  closeEndpoint: () => void
+  expandEndpointDetails: (id: string) => void
+  toggleEndpointDetails: (id: string) => void
   setExplorerView: (view: ExplorerView) => void
   toggleComparisonEndpoint: (id: string) => void
   resetExplorer: () => void
@@ -33,6 +33,7 @@ export const useUiStore = create<UiState>()(
       theme: 'dark',
       sidebarOpen: false,
       sidebarCollapsed: false,
+      expandedEndpointIds: [],
       explorerView: 'details',
       comparisonEndpointIds: [],
       setTheme: (theme) => {
@@ -46,9 +47,22 @@ export const useUiStore = create<UiState>()(
       },
       setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
       toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-      selectEndpoint: (selectedEndpointId) =>
-        set({ selectedEndpointId, explorerView: 'details', sidebarOpen: false }),
-      closeEndpoint: () => set({ selectedEndpointId: undefined, explorerView: 'details' }),
+      expandEndpointDetails: (id) =>
+        set((state) => ({
+          expandedEndpointIds: state.expandedEndpointIds.includes(id)
+            ? state.expandedEndpointIds
+            : [...state.expandedEndpointIds, id],
+          explorerView: 'details',
+          sidebarOpen: false,
+        })),
+      toggleEndpointDetails: (id) =>
+        set((state) => ({
+          expandedEndpointIds: state.expandedEndpointIds.includes(id)
+            ? state.expandedEndpointIds.filter((endpointId) => endpointId !== id)
+            : [...state.expandedEndpointIds, id],
+          explorerView: 'details',
+          sidebarOpen: false,
+        })),
       setExplorerView: (explorerView) => set({ explorerView, sidebarOpen: false }),
       toggleComparisonEndpoint: (id) =>
         set((state) => ({
@@ -58,7 +72,7 @@ export const useUiStore = create<UiState>()(
         })),
       resetExplorer: () =>
         set({
-          selectedEndpointId: undefined,
+          expandedEndpointIds: [],
           comparisonEndpointIds: [],
           explorerView: 'details',
           sidebarOpen: false,

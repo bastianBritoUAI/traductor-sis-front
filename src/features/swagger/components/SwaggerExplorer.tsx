@@ -5,25 +5,20 @@ import { useUiStore } from '../../../store/uiStore'
 import type { SwaggerEndpoint } from '../../../types/swagger'
 import { getRequestErrorMessage } from '../../../utils/httpErrors'
 import { EndpointComparator } from './EndpointComparator'
-import { EndpointDetails } from './EndpointDetails'
 import { EndpointList } from './EndpointList'
 import { SidebarSwagger } from './SidebarSwagger'
 
 export function SwaggerExplorer() {
   const { data, isLoading, isError, error, refetch, isFetching } = useOpenApi()
-  const selectedEndpointId = useUiStore((state) => state.selectedEndpointId)
-  const selectEndpoint = useUiStore((state) => state.selectEndpoint)
-  const closeEndpoint = useUiStore((state) => state.closeEndpoint)
+  const expandedEndpointIds = useUiStore((state) => state.expandedEndpointIds)
+  const toggleEndpointDetails = useUiStore((state) => state.toggleEndpointDetails)
   const explorerView = useUiStore((state) => state.explorerView)
   const setExplorerView = useUiStore((state) => state.setExplorerView)
   const comparisonEndpointIds = useUiStore((state) => state.comparisonEndpointIds)
+  const toggleComparisonEndpoint = useUiStore((state) => state.toggleComparisonEndpoint)
   const sidebarOpen = useUiStore((state) => state.sidebarOpen)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
 
-  const selectedEndpoint = useMemo(
-    () => data?.endpoints.find((endpoint) => endpoint.id === selectedEndpointId),
-    [data?.endpoints, selectedEndpointId],
-  )
   const comparisonEndpoints = useMemo(
     () =>
       comparisonEndpointIds
@@ -97,7 +92,7 @@ export function SwaggerExplorer() {
             className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition ${explorerView === 'details' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
             aria-pressed={explorerView === 'details'}
           >
-            <FileText size={15} /> Detalle
+            <FileText size={15} /> Endpoints
           </button>
           <button
             type="button"
@@ -115,26 +110,21 @@ export function SwaggerExplorer() {
           <span className="ml-auto hidden text-[10px] text-slate-400 sm:block">
             {explorerView === 'compare'
               ? 'Las ejecuciones son independientes'
-              : 'Documentación y prueba individual'}
+              : 'Documentación y prueba de múltiples endpoints'}
           </span>
         </div>
 
         <div className={explorerView === 'details' ? 'block' : 'hidden'}>
-          {selectedEndpoint ? (
-            <EndpointDetails
-              key={selectedEndpoint.id}
-              endpoint={selectedEndpoint}
-              document={data.document}
-              onClose={closeEndpoint}
-            />
-          ) : (
-            <EndpointList
-              endpoints={data.endpoints}
-              apiTitle={data.document.info.title}
-              apiVersion={data.document.info.version}
-              onSelect={selectEndpoint}
-            />
-          )}
+          <EndpointList
+            endpoints={data.endpoints}
+            document={data.document}
+            apiTitle={data.document.info.title}
+            apiVersion={data.document.info.version}
+            expandedEndpointIds={expandedEndpointIds}
+            comparisonEndpointIds={comparisonEndpointIds}
+            onToggleDetails={toggleEndpointDetails}
+            onToggleComparison={toggleComparisonEndpoint}
+          />
         </div>
         <div className={explorerView === 'compare' ? 'block' : 'hidden'}>
           <EndpointComparator endpoints={comparisonEndpoints} document={data.document} />

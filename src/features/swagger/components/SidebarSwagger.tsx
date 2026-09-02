@@ -13,6 +13,7 @@ import { useMemo, useState } from 'react'
 import { MethodBadge } from '../../../components/MethodBadge'
 import { useUiStore } from '../../../store/uiStore'
 import type { HttpMethod, SwaggerEndpoint } from '../../../types/swagger'
+import { getEndpointElementId } from '../../../utils/endpointDom'
 
 // Clases pre-calculadas por método para evitar purga de Tailwind con strings dinámicos
 const methodSelectedStyle: Record<HttpMethod, string> = {
@@ -43,8 +44,8 @@ export function SidebarSwagger({
   const [search, setSearch] = useState('')
   // const [method, setMethod] = useState<HttpMethod | 'all'>('all')
   const [groupVisibility, setGroupVisibility] = useState<Record<string, boolean>>({})
-  const selectedEndpointId = useUiStore((state) => state.selectedEndpointId)
-  const selectEndpoint = useUiStore((state) => state.selectEndpoint)
+  const expandedEndpointIds = useUiStore((state) => state.expandedEndpointIds)
+  const expandEndpointDetails = useUiStore((state) => state.expandEndpointDetails)
   const comparisonEndpointIds = useUiStore((state) => state.comparisonEndpointIds)
   const toggleComparisonEndpoint = useUiStore((state) => state.toggleComparisonEndpoint)
   // const setExplorerView = useUiStore((state) => state.setExplorerView)
@@ -78,6 +79,15 @@ export function SidebarSwagger({
   const toggleAllGroups = () => {
     const next = !allExpanded
     setGroupVisibility(Object.fromEntries(filteredGroups.map(([tag]) => [tag, next])))
+  }
+
+  const openEndpoint = (endpointId: string) => {
+    expandEndpointDetails(endpointId)
+    window.setTimeout(() => {
+      document
+        .getElementById(getEndpointElementId(endpointId))
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
   }
 
   if (desktop && sidebarCollapsed) {
@@ -219,7 +229,7 @@ export function SidebarSwagger({
                     <div className="mt-0.5 space-y-px">
                       {group.map((endpoint) => {
                         const compared = comparisonEndpointIds.includes(endpoint.id)
-                        const selected = selectedEndpointId === endpoint.id
+                        const selected = expandedEndpointIds.includes(endpoint.id)
                         return (
                           <div
                             key={endpoint.id}
@@ -231,7 +241,8 @@ export function SidebarSwagger({
                           >
                             <button
                               type="button"
-                              onClick={() => selectEndpoint(endpoint.id)}
+                              onClick={() => openEndpoint(endpoint.id)}
+                              aria-expanded={selected}
                               className="flex min-w-0 flex-1 items-start gap-2.5 px-2 py-2 text-left"
                             >
                               <MethodBadge method={endpoint.method} compact />
