@@ -1,15 +1,18 @@
 import { CircleAlert, Columns3, ListPlus, X } from 'lucide-react'
+import type { OpenAPIV3 } from 'openapi-types'
 import { useState } from 'react'
 import { MethodBadge } from '../../../components/MethodBadge'
 import { useUiStore } from '../../../store/uiStore'
 import type { EndpointExecutionRecord, SwaggerEndpoint } from '../../../types/swagger'
+import { EndpointResponses } from './EndpointResponses'
 import { RequestBuilder } from './RequestBuilder'
 
 interface EndpointComparatorProps {
   endpoints: SwaggerEndpoint[]
+  document: OpenAPIV3.Document
 }
 
-export function EndpointComparator({ endpoints }: EndpointComparatorProps) {
+export function EndpointComparator({ endpoints, document }: EndpointComparatorProps) {
   const [executions, setExecutions] = useState<Record<string, EndpointExecutionRecord | undefined>>(
     {},
   )
@@ -124,6 +127,7 @@ export function EndpointComparator({ endpoints }: EndpointComparatorProps) {
                     initialExecution={execution}
                     onExecutionChange={(record) => updateExecution(endpoint.id, record)}
                   />
+                  <EndpointResponses endpoint={endpoint} document={document} compact />
                 </div>
               </section>
             )

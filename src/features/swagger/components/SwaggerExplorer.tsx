@@ -137,7 +137,7 @@ export function SwaggerExplorer() {
           )}
         </div>
         <div className={explorerView === 'compare' ? 'block' : 'hidden'}>
-          <EndpointComparator endpoints={comparisonEndpoints} />
+          <EndpointComparator endpoints={comparisonEndpoints} document={data.document} />
         </div>
       </main>
     </div>
