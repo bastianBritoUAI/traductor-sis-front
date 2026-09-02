@@ -14,6 +14,7 @@ type ConnectionState = 'checking' | 'available' | 'unavailable'
 export function AppHeader() {
   const theme = useUiStore((state) => state.theme)
   const toggleTheme = useUiStore((state) => state.toggleTheme)
+  const explorerView = useUiStore((state) => state.explorerView)
   const setSidebarOpen = useUiStore((state) => state.setSidebarOpen)
   useApiSelectionStore((state) => state.activeApiId)
   const { instance, accounts } = useMsal()
@@ -46,14 +47,16 @@ export function AppHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 h-16 border-b border-slate-200 bg-white/90 backdrop-blur-xl dark:border-white/10 dark:bg-[#081321]/90">
       <div className="flex h-full items-center gap-3 px-4 sm:px-5">
-        <button
-          type="button"
-          onClick={() => setSidebarOpen(true)}
-          className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 lg:hidden dark:hover:bg-white/5"
-          aria-label="Abrir navegación de endpoints"
-        >
-          <Menu size={20} />
-        </button>
+        {explorerView === 'compare' && (
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 lg:hidden dark:hover:bg-white/5"
+            aria-label="Abrir navegación de endpoints"
+          >
+            <Menu size={20} />
+          </button>
+        )}
 
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-violet-600 shadow-lg shadow-emerald-500/20">
