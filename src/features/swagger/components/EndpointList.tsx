@@ -91,7 +91,7 @@ export function EndpointList({
       </header>
 
       {endpoints.length > 0 && (
-        <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="sticky top-[49px] z-20 -mx-3 mb-6 flex flex-wrap items-center gap-3 border-y border-slate-200/80 bg-slate-50/95 px-3 py-3 shadow-sm backdrop-blur-xl sm:-mx-4 sm:px-4 lg:-mx-5 lg:px-5 dark:border-white/10 dark:bg-[#07101d]/95">
           <div className="relative min-w-0 flex-1 sm:max-w-xl">
             <Search
               className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"

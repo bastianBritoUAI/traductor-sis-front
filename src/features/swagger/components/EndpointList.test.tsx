@@ -68,6 +68,17 @@ function EndpointListHarness() {
 }
 
 describe('EndpointList', () => {
+  it('keeps the endpoint search visible while the main view scrolls', () => {
+    render(<EndpointListHarness />)
+
+    const stickySearch = screen
+      .getByRole('searchbox', { name: 'Buscar endpoints' })
+      .closest('.sticky')
+
+    expect(stickySearch?.className).toContain('top-[49px]')
+    expect(stickySearch?.className).toContain('z-20')
+  })
+
   it('keeps multiple endpoint details expanded in the main view', () => {
     render(<EndpointListHarness />)
 
