@@ -2,7 +2,7 @@ import { Check, ChevronRight, Folder, List, Plus, Search, X } from 'lucide-react
 import type { OpenAPIV3 } from 'openapi-types'
 import { useMemo, useState } from 'react'
 import { MethodBadge } from '../../../components/MethodBadge'
-import type { SwaggerEndpoint } from '../../../types/swagger'
+import type { HttpMethod, SwaggerEndpoint } from '../../../types/swagger'
 import { getEndpointElementId } from '../../../utils/endpointDom'
 import { plainText } from '../../../utils/openapi'
 import { EndpointDetails } from './EndpointDetails'
@@ -16,6 +16,94 @@ interface EndpointListProps {
   comparisonEndpointIds: string[]
   onToggleDetails: (endpointId: string) => void
   onToggleComparison: (endpointId: string) => void
+}
+
+interface MethodContainerAppearance {
+  collapsed: string
+  expanded: string
+  header: string
+  expandedHeader: string
+  details: string
+  indicator: string
+  focus: string
+}
+
+const methodContainerStyles: Record<HttpMethod, MethodContainerAppearance> = {
+  get: {
+    collapsed: 'border-blue-300/60 bg-blue-50/40 dark:border-blue-400/20 dark:bg-blue-500/[0.035]',
+    expanded:
+      'border-blue-500/80 bg-blue-50/90 shadow-sm shadow-blue-500/15 ring-1 ring-blue-500/10 dark:border-blue-400/50 dark:bg-blue-500/[0.09]',
+    header: 'hover:bg-blue-500/[0.07] dark:hover:bg-blue-400/[0.07]',
+    expandedHeader: 'bg-blue-500/[0.08] dark:bg-blue-400/[0.07]',
+    details: 'border-blue-500/25 bg-blue-50/50 dark:border-blue-400/20 dark:bg-blue-950/10',
+    indicator: 'text-blue-500 group-hover:text-blue-700 dark:text-blue-400',
+    focus: 'focus-visible:outline-blue-500',
+  },
+  post: {
+    collapsed:
+      'border-green-300/60 bg-green-50/40 dark:border-green-400/20 dark:bg-green-500/[0.035]',
+    expanded:
+      'border-green-500/80 bg-green-50/90 shadow-sm shadow-green-500/15 ring-1 ring-green-500/10 dark:border-green-400/50 dark:bg-green-500/[0.09]',
+    header: 'hover:bg-green-500/[0.07] dark:hover:bg-green-400/[0.07]',
+    expandedHeader: 'bg-green-500/[0.08] dark:bg-green-400/[0.07]',
+    details: 'border-green-500/25 bg-green-50/50 dark:border-green-400/20 dark:bg-green-950/10',
+    indicator: 'text-green-500 group-hover:text-green-700 dark:text-green-400',
+    focus: 'focus-visible:outline-green-500',
+  },
+  put: {
+    collapsed:
+      'border-amber-300/70 bg-amber-50/50 dark:border-amber-400/20 dark:bg-amber-500/[0.035]',
+    expanded:
+      'border-amber-500/80 bg-amber-50/90 shadow-sm shadow-amber-500/15 ring-1 ring-amber-500/10 dark:border-amber-400/50 dark:bg-amber-500/[0.09]',
+    header: 'hover:bg-amber-500/[0.08] dark:hover:bg-amber-400/[0.07]',
+    expandedHeader: 'bg-amber-500/[0.09] dark:bg-amber-400/[0.07]',
+    details: 'border-amber-500/25 bg-amber-50/50 dark:border-amber-400/20 dark:bg-amber-950/10',
+    indicator: 'text-amber-600 group-hover:text-amber-700 dark:text-amber-400',
+    focus: 'focus-visible:outline-amber-500',
+  },
+  patch: {
+    collapsed:
+      'border-violet-300/60 bg-violet-50/40 dark:border-violet-400/20 dark:bg-violet-500/[0.035]',
+    expanded:
+      'border-violet-500/80 bg-violet-50/90 shadow-sm shadow-violet-500/15 ring-1 ring-violet-500/10 dark:border-violet-400/50 dark:bg-violet-500/[0.09]',
+    header: 'hover:bg-violet-500/[0.07] dark:hover:bg-violet-400/[0.07]',
+    expandedHeader: 'bg-violet-500/[0.08] dark:bg-violet-400/[0.07]',
+    details: 'border-violet-500/25 bg-violet-50/50 dark:border-violet-400/20 dark:bg-violet-950/10',
+    indicator: 'text-violet-500 group-hover:text-violet-700 dark:text-violet-400',
+    focus: 'focus-visible:outline-violet-500',
+  },
+  delete: {
+    collapsed: 'border-red-300/60 bg-red-50/40 dark:border-red-400/20 dark:bg-red-500/[0.035]',
+    expanded:
+      'border-red-500/80 bg-red-50/90 shadow-sm shadow-red-500/15 ring-1 ring-red-500/10 dark:border-red-400/50 dark:bg-red-500/[0.09]',
+    header: 'hover:bg-red-500/[0.07] dark:hover:bg-red-400/[0.07]',
+    expandedHeader: 'bg-red-500/[0.08] dark:bg-red-400/[0.07]',
+    details: 'border-red-500/25 bg-red-50/50 dark:border-red-400/20 dark:bg-red-950/10',
+    indicator: 'text-red-500 group-hover:text-red-700 dark:text-red-400',
+    focus: 'focus-visible:outline-red-500',
+  },
+  options: {
+    collapsed:
+      'border-slate-300/80 bg-slate-100/60 dark:border-slate-400/20 dark:bg-slate-500/[0.04]',
+    expanded:
+      'border-slate-500/80 bg-slate-100/90 shadow-sm shadow-slate-500/15 ring-1 ring-slate-500/10 dark:border-slate-400/50 dark:bg-slate-500/[0.1]',
+    header: 'hover:bg-slate-500/[0.08] dark:hover:bg-slate-400/[0.07]',
+    expandedHeader: 'bg-slate-500/[0.09] dark:bg-slate-400/[0.07]',
+    details: 'border-slate-500/25 bg-slate-100/60 dark:border-slate-400/20 dark:bg-slate-950/10',
+    indicator: 'text-slate-500 group-hover:text-slate-700 dark:text-slate-400',
+    focus: 'focus-visible:outline-slate-500',
+  },
+  head: {
+    collapsed:
+      'border-slate-300/80 bg-slate-100/60 dark:border-slate-400/20 dark:bg-slate-500/[0.04]',
+    expanded:
+      'border-slate-500/80 bg-slate-100/90 shadow-sm shadow-slate-500/15 ring-1 ring-slate-500/10 dark:border-slate-400/50 dark:bg-slate-500/[0.1]',
+    header: 'hover:bg-slate-500/[0.08] dark:hover:bg-slate-400/[0.07]',
+    expandedHeader: 'bg-slate-500/[0.09] dark:bg-slate-400/[0.07]',
+    details: 'border-slate-500/25 bg-slate-100/60 dark:border-slate-400/20 dark:bg-slate-950/10',
+    indicator: 'text-slate-500 group-hover:text-slate-700 dark:text-slate-400',
+    focus: 'focus-visible:outline-slate-500',
+  },
 }
 
 function normalizeSearchValue(value: string) {
@@ -71,7 +159,7 @@ export function EndpointList({
   )
 
   return (
-    <section className="w-full px-3 py-6 sm:px-4 lg:px-5 lg:py-8">
+    <section className="mx-auto w-full max-w-[1520px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
@@ -91,7 +179,7 @@ export function EndpointList({
       </header>
 
       {endpoints.length > 0 && (
-        <div className="sticky top-[49px] z-20 -mx-3 mb-6 flex flex-wrap items-center gap-3 border-y border-slate-200/80 bg-slate-50/95 px-3 py-3 shadow-sm backdrop-blur-xl sm:-mx-4 sm:px-4 lg:-mx-5 lg:px-5 dark:border-white/10 dark:bg-[#07101d]/95">
+        <div className="sticky top-[49px] z-20 -mx-4 mb-6 flex flex-wrap items-center gap-3 border-y border-slate-200/80 bg-slate-50/95 px-4 py-3 shadow-sm backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 dark:border-white/10 dark:bg-[#07101d]/95">
           <div className="relative min-w-0 flex-1 sm:max-w-xl">
             <Search
               className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
@@ -144,6 +232,7 @@ export function EndpointList({
                 {controllerEndpoints.map((endpoint) => {
                   const expanded = expandedEndpointIds.includes(endpoint.id)
                   const compared = comparisonEndpointIds.includes(endpoint.id)
+                  const methodStyle = methodContainerStyles[endpoint.method]
                   const endpointElementId = getEndpointElementId(endpoint.id)
                   const detailsId = `${endpointElementId}-details`
 
@@ -151,20 +240,20 @@ export function EndpointList({
                     <div
                       id={endpointElementId}
                       key={endpoint.id}
-                      className={`scroll-mt-16 overflow-hidden rounded-xl border transition-colors ${expanded ? 'border-emerald-400/70 bg-emerald-50/80 shadow-sm shadow-emerald-500/10 dark:border-emerald-400/40 dark:bg-emerald-500/[0.08]' : 'border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.025]'}`}
+                      className={`scroll-mt-16 overflow-hidden rounded-xl border transition-colors ${expanded ? methodStyle.expanded : methodStyle.collapsed}`}
                     >
                       <div
-                        className={`group flex items-center gap-2 transition ${expanded ? 'bg-emerald-500/[0.06]' : 'hover:bg-slate-50 dark:hover:bg-white/[0.06]'}`}
+                        className={`group flex items-center gap-2 transition ${expanded ? methodStyle.expandedHeader : methodStyle.header}`}
                       >
                         <button
                           type="button"
                           onClick={() => onToggleDetails(endpoint.id)}
-                          className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5 text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-emerald-500"
+                          className={`flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5 text-left focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-2px] ${methodStyle.focus}`}
                           aria-expanded={expanded}
                           aria-controls={detailsId}
                           aria-label={`${expanded ? 'Contraer' : 'Expandir'} ${endpoint.summary}`}
                         >
-                          <MethodBadge method={endpoint.method} />
+                          <MethodBadge method={endpoint.method} strong />
                           <span className="min-w-0 flex-1">
                             <span className="flex items-center gap-2">
                               <span className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
@@ -181,7 +270,7 @@ export function EndpointList({
                             </code>
                           </span>
                           <ChevronRight
-                            className={`shrink-0 text-slate-400 transition-transform ${expanded ? 'rotate-90 text-emerald-600 dark:text-emerald-400' : 'group-hover:text-emerald-600 dark:group-hover:text-emerald-400'}`}
+                            className={`shrink-0 transition-transform ${methodStyle.indicator} ${expanded ? 'rotate-90' : ''}`}
                             size={18}
                           />
                         </button>
@@ -202,10 +291,7 @@ export function EndpointList({
                       </div>
 
                       {expanded && (
-                        <div
-                          id={detailsId}
-                          className="border-t border-emerald-500/25 bg-emerald-50/40 dark:border-emerald-400/20 dark:bg-emerald-950/10"
-                        >
+                        <div id={detailsId} className={`border-t ${methodStyle.details}`}>
                           <EndpointDetails
                             endpoint={endpoint}
                             document={document}

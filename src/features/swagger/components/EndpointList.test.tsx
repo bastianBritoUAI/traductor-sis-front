@@ -77,6 +77,26 @@ describe('EndpointList', () => {
 
     expect(stickySearch?.className).toContain('top-[49px]')
     expect(stickySearch?.className).toContain('z-20')
+    expect(stickySearch?.closest('section')?.className).toContain('mx-auto')
+    expect(stickySearch?.closest('section')?.className).toContain('max-w-[1520px]')
+  })
+
+  it('colors collapsed endpoint containers and method badges by HTTP method', () => {
+    render(<EndpointListHarness />)
+
+    const getContainer = screen
+      .getByRole('button', { name: 'Expandir Listar usuarios' })
+      .closest('[id^="endpoint-"]')
+    const postContainer = screen
+      .getByRole('button', { name: 'Expandir Crear usuario' })
+      .closest('[id^="endpoint-"]')
+
+    expect(getContainer?.className).toContain('border-blue-300/60')
+    expect(getContainer?.className).toContain('bg-blue-50/40')
+    expect(postContainer?.className).toContain('border-green-300/60')
+    expect(postContainer?.className).toContain('bg-green-50/40')
+    expect(screen.getByText('get').className).toContain('bg-blue-600')
+    expect(screen.getByText('post').className).toContain('bg-green-600')
   })
 
   it('keeps multiple endpoint details expanded in the main view', () => {
@@ -90,11 +110,11 @@ describe('EndpointList', () => {
     expect(
       screen.getByRole('button', { name: 'Contraer Listar usuarios' }).closest('[id^="endpoint-"]')
         ?.className,
-    ).toContain('border-emerald-400/70')
+    ).toContain('border-blue-500/80')
     expect(
       screen.getByRole('button', { name: 'Contraer Listar usuarios' }).closest('[id^="endpoint-"]')
         ?.className,
-    ).toContain('bg-emerald-50/80')
+    ).toContain('bg-blue-50/90')
   })
 
   it('selects an endpoint for comparison without expanding its details', () => {
