@@ -136,3 +136,11 @@ npm run format
 npm run format:check
 npm run test
 ```
+swa deploy  \
+ --app-location . \
+  --api-location api \
+  --output-location dist \
+  --api-language node \
+  --api-version 18 \
+  --deployment-token MI_TOKEN_AZURE \
+  --env production
