@@ -8,7 +8,6 @@ export function useApiHealth() {
     queryKey: ['api-health', activeApiId],
     queryFn: checkApiAvailability,
     staleTime: 15_000,
-    refetchInterval: 30_000,
     retry: false,
   })
 }
